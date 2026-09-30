@@ -1,1 +1,4 @@
-ECE 49595 Exercise 3
+Cora Wood
+Kira Sun
+Sathvik Valluri
+Mihit Mahanta
