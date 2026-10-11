@@ -116,7 +116,13 @@ export class Link {
           send(sock, { t: 'ops', ops: this.r.since(m.vv) });
           this.onChange();
         } else if (m.t === 'ops') {
-          const fresh = this.r.ingest(m.ops);
+          let fresh;
+          try { fresh = this.r.ingest(m.ops); }
+          catch (error) {
+            console.error(`Incoming edits rejected: ${error.message}`);
+            sock.destroy();
+            return;
+          }
           if (fresh.length) {
             this.relay(fresh, sock); // pass on whatever this peer just taught us
             this.onChange();

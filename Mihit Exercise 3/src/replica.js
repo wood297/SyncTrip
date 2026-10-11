@@ -9,7 +9,7 @@ export class Replica {
     this.ids = new Set();
     this.vv = {};
     this.lamport = 0;
-    this.seq = 0;
+    this.beforeIngest = null;
   }
 
   commit(fields) {
@@ -28,6 +28,9 @@ export class Replica {
 
   ingest(incoming) {
     const fresh = incoming.filter(o => !this.ids.has(o.id));
+    // A storage adapter can persist the proposed history before it is accepted.
+    // If writing fails, neither local edits nor incoming edits mutate this replica.
+    if (fresh.length && this.beforeIngest) this.beforeIngest([...this.ops, ...fresh]);
     for (const op of fresh.sort((a, b) => a.lamport - b.lamport)) {
       this.ops.push(op);
       this.ids.add(op.id);
@@ -42,7 +45,11 @@ export class Replica {
     return this.ops.filter(o => o.counter > vvGet(vv, o.replica));
   }
 
-  add(time, place, title) { return this.commit({ type: 'add', actId: `${this.id.slice(0, 2)}${++this.seq}`, time, place, title }); }
+  add(time, place, title) {
+    // Use the complete replica identity and operation counter to avoid collisions
+    // between names sharing a prefix, and between sessions after a restart.
+    return this.commit({ type: 'add', actId: `${this.id}:${vvGet(this.vv, this.id) + 1}`, time, place, title });
+  }
   set(actId, field, value) { return this.commit({ type: 'set', actId, field, value }); }
   remove(actId) { return this.commit({ type: 'remove', actId }); }
   resolve(actId, choice) { return this.commit({ type: 'resolve', actId, choice }); }

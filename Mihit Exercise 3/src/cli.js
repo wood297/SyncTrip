@@ -1,16 +1,20 @@
 // One phone, one terminal.
 
 import readline from 'node:readline';
-import { Replica } from './replica.js';
+import path from 'node:path';
+import { openReplica } from './storage.js';
 import { Link } from './net.js';
 
 const name = process.argv[2];
 if (!name) {
-  console.error('usage: node src/cli.js <name>');
+  console.error('usage: node src/cli.js <name> [snapshot-file]');
   process.exit(1);
 }
 
-const r = new Replica(name);
+const storageFile = path.resolve(process.argv[3] || path.join('data', Buffer.from(name).toString('hex') + '.json'));
+let r;
+try { r = openReplica(name, storageFile); }
+catch (error) { console.error(error.message); process.exit(1); }
 const link = new Link(r, () => draw());
 
 const rl = readline.createInterface({
@@ -80,4 +84,5 @@ rl.on('line', line => {
 });
 
 console.log(HELP);
+console.log(`Storage: ${storageFile}\nRestored ${r.ops.length} operations. Changes are saved automatically.`);
 draw();
