@@ -74,11 +74,13 @@ struct ActivityFormView: View {
         !draft.title.trimmingCharacters(in: .whitespaces).isEmpty && draft.end >= draft.start
     }
 
-    // Trim the title and drop fields left over from a previously selected type
+    // Trim text and drop empty fields or ones left over from a previously selected type
     private var cleaned: Activity {
         var activity = draft
         activity.title = activity.title.trimmingCharacters(in: .whitespaces)
-        activity.details = activity.details.filter { activity.type.fields.contains($0.key) }
+        activity.details = activity.details
+            .mapValues { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { activity.type.fields.contains($0.key) && !$0.value.isEmpty }
         return activity
     }
 
