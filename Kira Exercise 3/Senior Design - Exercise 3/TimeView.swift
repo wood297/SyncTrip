@@ -4,7 +4,7 @@
  */
 
 import SwiftUI
-public import Combine
+import Combine
 
 struct TimeView: View {
     // Get current time from local info
@@ -18,26 +18,20 @@ struct TimeView: View {
         VStack(spacing: 16) {
             Text("Current Time")
                 .font(.title2)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
 
-            Text(timeString)
+            // e.g. "9:53 PM"
+            Text(currentTime.formatted(date: .omitted, time: .shortened))
                 .font(.system(size: 48, weight: .bold, design: .rounded))
                 .monospacedDigit()
         }
         .padding()
         .navigationTitle("Time")
-        
+
         // listens for timer refresh, updates current time
         .onReceive(timer) { newTime in
             currentTime = newTime
         }
-    }
-
-    // Formats as "h:mm a" -> e.g. "9:53 PM"
-    private var timeString: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "h:mm a"
-        return formatter.string(from: currentTime)
     }
 }
 
