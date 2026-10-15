@@ -1,0 +1,80 @@
+{
+  "version": 3,
+  "replica_id": "Bob",
+  "clock": 8,
+  "payload": {
+    "activities": {
+      "21a289cd22f44403bb59c924b057a2cf": {
+        "notes": {
+          "value": "",
+          "stamp": [
+            3,
+            "Alice"
+          ]
+        },
+        "time": {
+          "value": "15:00",
+          "stamp": [
+            2,
+            "Alice"
+          ]
+        },
+        "title": {
+          "value": "Hotel Check-in",
+          "stamp": [
+            1,
+            "Alice"
+          ]
+        }
+      },
+      "415404f6fec94f9295f64ae5cea630d5": {
+        "notes": {
+          "value": "",
+          "stamp": [
+            6,
+            "Alice"
+          ]
+        },
+        "time": {
+          "value": "10:00",
+          "stamp": [
+            5,
+            "Alice"
+          ]
+        },
+        "title": {
+          "value": "Kayaking",
+          "stamp": [
+            4,
+            "Alice"
+          ]
+        }
+      }
+    },
+    "votes": {
+      "21a289cd22f44403bb59c924b057a2cf": {},
+      "415404f6fec94f9295f64ae5cea630d5": {
+        "Alice": {
+          "value": "up",
+          "stamp": [
+            7,
+            "Alice"
+          ]
+        },
+        "Bob": {
+          "value": "down",
+          "stamp": [
+            8,
+            "Bob"
+          ]
+        }
+      }
+    },
+    "conflicts": {},
+    "proposed": [
+      "415404f6fec94f9295f64ae5cea630d5"
+    ],
+    "decisions": {},
+    "deleted": []
+  }
+}

@@ -1,21 +1,29 @@
 {
-  "version": 2,
+  "version": 3,
   "replica_id": "Charlie",
   "clock": 9,
   "payload": {
     "activities": {
-      "0aaa6cc38ad740a1bd436c7525be82cd": {
+      "61c68bf824094d4b8c37d522be9a2ea7": {
         "notes": {
           "value": "Vegetarian options available",
           "stamp": [
             7,
             "Bob"
+          ],
+          "base": [
+            3,
+            "Alice"
           ]
         },
         "time": {
           "value": "19:30",
           "stamp": [
             7,
+            "Alice"
+          ],
+          "base": [
+            2,
             "Alice"
           ]
         },
@@ -27,7 +35,7 @@
           ]
         }
       },
-      "bad216c96d434070a2757041a2465cbb": {
+      "7599fc56d43c4e5dbf2c8861acb9a8c5": {
         "notes": {
           "value": "",
           "stamp": [
@@ -50,7 +58,7 @@
           ]
         }
       },
-      "d33b2d728f164c679b1af7886ad5f374": {
+      "9cd1f59967a943d2b7ac462d84bf4555": {
         "notes": {
           "value": "",
           "stamp": [
@@ -75,12 +83,15 @@
       }
     },
     "votes": {
-      "0aaa6cc38ad740a1bd436c7525be82cd": {},
-      "bad216c96d434070a2757041a2465cbb": {},
-      "d33b2d728f164c679b1af7886ad5f374": {}
+      "61c68bf824094d4b8c37d522be9a2ea7": {},
+      "7599fc56d43c4e5dbf2c8861acb9a8c5": {},
+      "9cd1f59967a943d2b7ac462d84bf4555": {}
     },
+    "conflicts": {},
+    "proposed": [],
+    "decisions": {},
     "deleted": [
-      "d33b2d728f164c679b1af7886ad5f374"
+      "9cd1f59967a943d2b7ac462d84bf4555"
     ]
   }
 }

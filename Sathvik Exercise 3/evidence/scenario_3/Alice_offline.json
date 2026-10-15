@@ -1,0 +1,43 @@
+{
+  "version": 3,
+  "replica_id": "Alice",
+  "clock": 4,
+  "payload": {
+    "activities": {
+      "702cd0279a9447368690aaf1f8eac6e5": {
+        "notes": {
+          "value": "",
+          "stamp": [
+            3,
+            "Alice"
+          ]
+        },
+        "time": {
+          "value": "07:30",
+          "stamp": [
+            4,
+            "Alice"
+          ],
+          "base": [
+            2,
+            "Alice"
+          ]
+        },
+        "title": {
+          "value": "Breakfast",
+          "stamp": [
+            1,
+            "Alice"
+          ]
+        }
+      }
+    },
+    "votes": {
+      "702cd0279a9447368690aaf1f8eac6e5": {}
+    },
+    "conflicts": {},
+    "proposed": [],
+    "decisions": {},
+    "deleted": []
+  }
+}

@@ -1,10 +1,10 @@
 {
-  "version": 2,
+  "version": 3,
   "replica_id": "Alice",
   "clock": 7,
   "payload": {
     "activities": {
-      "0aaa6cc38ad740a1bd436c7525be82cd": {
+      "61c68bf824094d4b8c37d522be9a2ea7": {
         "notes": {
           "value": "",
           "stamp": [
@@ -17,6 +17,10 @@
           "stamp": [
             7,
             "Alice"
+          ],
+          "base": [
+            2,
+            "Alice"
           ]
         },
         "title": {
@@ -27,7 +31,7 @@
           ]
         }
       },
-      "d33b2d728f164c679b1af7886ad5f374": {
+      "9cd1f59967a943d2b7ac462d84bf4555": {
         "notes": {
           "value": "",
           "stamp": [
@@ -52,11 +56,14 @@
       }
     },
     "votes": {
-      "0aaa6cc38ad740a1bd436c7525be82cd": {},
-      "d33b2d728f164c679b1af7886ad5f374": {}
+      "61c68bf824094d4b8c37d522be9a2ea7": {},
+      "9cd1f59967a943d2b7ac462d84bf4555": {}
     },
+    "conflicts": {},
+    "proposed": [],
+    "decisions": {},
     "deleted": [
-      "d33b2d728f164c679b1af7886ad5f374"
+      "9cd1f59967a943d2b7ac462d84bf4555"
     ]
   }
 }

@@ -1,10 +1,10 @@
 {
-  "version": 2,
+  "version": 3,
   "replica_id": "Charlie",
   "clock": 4,
   "payload": {
     "activities": {
-      "1182a633e3c641ccb0c23b9e7e7bd789": {
+      "74767bfae08547df819e5d3ea851abc5": {
         "notes": {
           "value": "",
           "stamp": [
@@ -29,7 +29,7 @@
       }
     },
     "votes": {
-      "1182a633e3c641ccb0c23b9e7e7bd789": {
+      "74767bfae08547df819e5d3ea851abc5": {
         "Charlie": {
           "value": "up",
           "stamp": [
@@ -39,6 +39,9 @@
         }
       }
     },
+    "conflicts": {},
+    "proposed": [],
+    "decisions": {},
     "deleted": []
   }
 }

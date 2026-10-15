@@ -65,3 +65,138 @@ RECONNECTED: ALL COPIES AGREE
     12:00 | Taco Bell      | up=2 down=1 score=+1
 PASS: Taco Bell is on the schedule: 2 upvotes, 1 downvote, net score +1.
 Votes follow the activity ID across its rename; they do not approve or reject title edits.
+
+SCENARIO 3: CONFLICTING BREAKFAST TIMES SETTLED BY A VOTE
+
+SHARED START
+  Alice
+    08:00 | Breakfast      | up=0 down=0 score=+0
+  Bob
+    08:00 | Breakfast      | up=0 down=0 score=+0
+  Charlie
+    08:00 | Breakfast      | up=0 down=0 score=+0
+
+OFFLINE COPIES
+  Alice
+    07:30 | Breakfast      | up=0 down=0 score=+0
+  Bob
+    08:15 | Breakfast      | up=0 down=0 score=+0
+  Charlie
+    08:00 | Breakfast      | up=0 down=0 score=+0
+
+RECONNECTED: TIME CONFLICT DETECTED, VOTE OPENED
+  Alice
+    --:-- | Breakfast      | up=0 down=0 score=+0
+      Time vote for this Breakfast (choosing between proposed times) [OPEN]:
+        07:30  score=+0  (no votes)
+        08:15  score=+0  (no votes)
+  Bob
+    --:-- | Breakfast      | up=0 down=0 score=+0
+      Time vote for this Breakfast (choosing between proposed times) [OPEN]:
+        07:30  score=+0  (no votes)
+        08:15  score=+0  (no votes)
+  Charlie
+    --:-- | Breakfast      | up=0 down=0 score=+0
+      Time vote for this Breakfast (choosing between proposed times) [OPEN]:
+        07:30  score=+0  (no votes)
+        08:15  score=+0  (no votes)
+
+EACH TRAVELER VOTES ON THEIR OWN DEVICE
+  Alice
+    --:-- | Breakfast      | up=0 down=0 score=+0
+      Time vote for this Breakfast (choosing between proposed times) [OPEN]:
+        07:30  score=+1  (Alice)
+        08:15  score=+0  (no votes)
+  Bob
+    --:-- | Breakfast      | up=0 down=0 score=+0
+      Time vote for this Breakfast (choosing between proposed times) [OPEN]:
+        07:30  score=+0  (no votes)
+        08:15  score=+1  (Bob)
+  Charlie
+    --:-- | Breakfast      | up=0 down=0 score=+0
+      Time vote for this Breakfast (choosing between proposed times) [OPEN]:
+        07:30  score=+0  (no votes)
+        08:15  score=+1  (Charlie)
+
+VOTES SHARED
+  Alice
+    --:-- | Breakfast      | up=0 down=0 score=+0
+      Time vote for this Breakfast (choosing between proposed times) [OPEN]:
+        07:30  score=+1  (Alice)
+        08:15  score=+2  (Bob, Charlie)
+  Bob
+    --:-- | Breakfast      | up=0 down=0 score=+0
+      Time vote for this Breakfast (choosing between proposed times) [OPEN]:
+        07:30  score=+1  (Alice)
+        08:15  score=+2  (Bob, Charlie)
+  Charlie
+    --:-- | Breakfast      | up=0 down=0 score=+0
+      Time vote for this Breakfast (choosing between proposed times) [OPEN]:
+        07:30  score=+1  (Alice)
+        08:15  score=+2  (Bob, Charlie)
+
+VOTE CLOSED: WINNING TIME SYNCED TO ALL COPIES
+  Alice
+    08:15 | Breakfast      | up=0 down=0 score=+0
+      Time vote for this Breakfast (choosing between proposed times) [CLOSED, 08:15 wins]:
+        07:30  score=+1  (Alice)
+        08:15  score=+2  (Bob, Charlie)
+  Bob
+    08:15 | Breakfast      | up=0 down=0 score=+0
+      Time vote for this Breakfast (choosing between proposed times) [CLOSED, 08:15 wins]:
+        07:30  score=+1  (Alice)
+        08:15  score=+2  (Bob, Charlie)
+  Charlie
+    08:15 | Breakfast      | up=0 down=0 score=+0
+      Time vote for this Breakfast (choosing between proposed times) [CLOSED, 08:15 wins]:
+        07:30  score=+1  (Alice)
+        08:15  score=+2  (Bob, Charlie)
+PASS: 08:15 wins the Breakfast time vote +2 to +1 and every copy shows Breakfast at 08:15.
+Time votes choose between proposed times for one activity; they are not upvotes or downvotes.
+
+SCENARIO 4: PROPOSED KAYAKING TRIP IS VOTED DOWN
+
+SHARED START: ALICE PROPOSES KAYAKING AND UPVOTES IT
+  Alice
+    10:00 | Kayaking       | up=1 down=0 score=+1  [PROPOSED: not on itinerary until vote closes]
+    15:00 | Hotel Check-in | up=0 down=0 score=+0
+  Bob
+    10:00 | Kayaking       | up=1 down=0 score=+1  [PROPOSED: not on itinerary until vote closes]
+    15:00 | Hotel Check-in | up=0 down=0 score=+0
+  Charlie
+    10:00 | Kayaking       | up=1 down=0 score=+1  [PROPOSED: not on itinerary until vote closes]
+    15:00 | Hotel Check-in | up=0 down=0 score=+0
+
+OFFLINE COPIES
+  Alice
+    10:00 | Kayaking       | up=1 down=0 score=+1  [PROPOSED: not on itinerary until vote closes]
+    15:00 | Hotel Check-in | up=0 down=0 score=+0
+  Bob
+    10:00 | Kayaking       | up=1 down=1 score=+0  [PROPOSED: not on itinerary until vote closes]
+    15:00 | Hotel Check-in | up=0 down=0 score=+0
+  Charlie
+    10:00 | Kayaking       | up=1 down=1 score=+0  [PROPOSED: not on itinerary until vote closes]
+    15:00 | Hotel Check-in | up=0 down=0 score=+0
+
+RECONNECTED: VOTES COMBINED, PROPOSAL STILL OPEN
+  Alice
+    10:00 | Kayaking       | up=1 down=2 score=-1  [PROPOSED: not on itinerary until vote closes]
+    15:00 | Hotel Check-in | up=0 down=0 score=+0
+  Bob
+    10:00 | Kayaking       | up=1 down=2 score=-1  [PROPOSED: not on itinerary until vote closes]
+    15:00 | Hotel Check-in | up=0 down=0 score=+0
+  Charlie
+    10:00 | Kayaking       | up=1 down=2 score=-1  [PROPOSED: not on itinerary until vote closes]
+    15:00 | Hotel Check-in | up=0 down=0 score=+0
+
+VOTE CLOSED: KAYAKING NOT ADDED
+  Alice
+    15:00 | Hotel Check-in | up=0 down=0 score=+0
+    Not added: 10:00 Kayaking (up=1 down=2 score=-1)
+  Bob
+    15:00 | Hotel Check-in | up=0 down=0 score=+0
+    Not added: 10:00 Kayaking (up=1 down=2 score=-1)
+  Charlie
+    15:00 | Hotel Check-in | up=0 down=0 score=+0
+    Not added: 10:00 Kayaking (up=1 down=2 score=-1)
+PASS: Kayaking ends with 1 upvote, 2 downvotes, net score -1, and is not added to the itinerary.

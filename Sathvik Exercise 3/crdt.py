@@ -2,11 +2,13 @@ from dataclasses import dataclass, field
 
 
 # Store one value with a (logical counter, device ID) timestamp.
+# An edit also records the stamp of the value it replaced, so concurrent edits can be detected.
 @dataclass(frozen=True)
 class Register:
 
     value: str
     stamp: tuple[int, str]
+    base: tuple[int, str] | None = None
 
     # Keep the higher counter; break ties by device ID. Reject reused write IDs.
     def merge(self, other: "Register") -> "Register":

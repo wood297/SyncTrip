@@ -1,0 +1,102 @@
+{
+  "version": 3,
+  "replica_id": "Bob",
+  "clock": 6,
+  "payload": {
+    "activities": {
+      "702cd0279a9447368690aaf1f8eac6e5": {
+        "notes": {
+          "value": "",
+          "stamp": [
+            3,
+            "Alice"
+          ]
+        },
+        "time": {
+          "value": "08:15",
+          "stamp": [
+            6,
+            "Alice"
+          ],
+          "base": [
+            4,
+            "Bob"
+          ]
+        },
+        "title": {
+          "value": "Breakfast",
+          "stamp": [
+            1,
+            "Alice"
+          ]
+        }
+      }
+    },
+    "votes": {
+      "702cd0279a9447368690aaf1f8eac6e5": {}
+    },
+    "conflicts": {
+      "702cd0279a9447368690aaf1f8eac6e5": {
+        "time": {
+          "candidates": {
+            "4:Alice": {
+              "value": "07:30",
+              "stamp": [
+                4,
+                "Alice"
+              ],
+              "base": [
+                2,
+                "Alice"
+              ]
+            },
+            "4:Bob": {
+              "value": "08:15",
+              "stamp": [
+                4,
+                "Bob"
+              ],
+              "base": [
+                2,
+                "Alice"
+              ]
+            }
+          },
+          "votes": {
+            "Alice": {
+              "value": "4:Alice",
+              "stamp": [
+                5,
+                "Alice"
+              ]
+            },
+            "Bob": {
+              "value": "4:Bob",
+              "stamp": [
+                5,
+                "Bob"
+              ]
+            },
+            "Charlie": {
+              "value": "4:Bob",
+              "stamp": [
+                5,
+                "Charlie"
+              ]
+            }
+          },
+          "result": {
+            "value": "4:Bob",
+            "stamp": [
+              6,
+              "Alice"
+            ]
+          }
+        }
+      }
+    },
+    "proposed": [],
+    "decisions": {},
+    "deleted": []
+  }
+}
