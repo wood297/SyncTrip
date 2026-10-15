@@ -47,3 +47,16 @@ Install the required dependency:
 
 ```bash
 pip install -r requirements.txt
+```
+
+## Exercise 5: Itinerary Activities
+
+Options 6-9 add, view, edit, and delete activities within an existing trip. Option 10 exits.
+Each activity has a title, date/time (`MM-DD-YYYY HH:MM`, local 24-hour time),
+location, and generated ID. When editing, leave a field blank to keep it.
+
+Activities are saved on the trip in the existing DynamoDB table, so no new
+table is needed. Existing trips start with an empty itinerary. Deleting an
+activity keeps the trip and deleting a trip removes its activities too.
+
+Run `python app.py`
