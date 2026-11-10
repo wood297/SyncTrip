@@ -41,7 +41,8 @@ $env:AWS_PROFILE = "your-profile"
 
 Use your team's AWS sign-in/profile; never put access keys in source or the iOS app.
 The table must already exist with string partition key `trip_id` and no sort key.
-The API does not create tables or modify data. `.env.example` documents settings;
+The API does not create tables; activity endpoints modify activities on existing
+trips. `.env.example` documents settings;
 `.env` is not loaded automatically. Shell variables work without extra packages.
 
 - API explorer: http://127.0.0.1:8000/docs
@@ -55,6 +56,47 @@ to repeat the five HTTP checks against the real database. A 503 is a failed live
 verification; check your AWS sign-in, selected region/table, and GetItem permission.
 See [API setup and contract](doc/api.md) for DynamoDB and client integration details.
 
+The API now supports creating, listing, editing, and deleting activities. The
+backend identity needs `dynamodb:GetItem` and `dynamodb:UpdateItem` on the trip
+table. It still never creates or deletes trips or tables.
+
+## Activity creation prototype
+
+Start the demo above, then in a second terminal run:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/verify_activity_flow.py --trip-id demo-trip --allow-writes
+```
+
+Expected: `All 6 activity-flow checks passed; temporary activity cleaned up.`
+This creates, reloads, retries, edits, validates, and deletes one temporary
+activity. Unlike the read-only verifier, this command writes to the selected
+trip. Use the demo for a disposable test; supplying a live trip ID tests AWS
+writes and requires UpdateItem permission.
+
+To create one manually, open `/docs`, expand
+`POST /api/v1/trips/{trip_id}/activities`, enter `demo-trip`, and use the sample
+JSON in [doc/api.md](doc/api.md). Expect 201; then use GET activities to verify
+the saved record independently.
+
+On a Mac, start the backend on that Mac and open `ios/SyncTrip.xcodeproj`.
+In **Product > Scheme > Edit Scheme > Run > Arguments > Environment Variables**:
+
+- `SYNCTRIP_API_URL` = `http://localhost:8000`
+- `SYNCTRIP_TRIP_ID` = `demo-trip` (or an existing live trip when using AWS)
+
+Run in an iOS simulator. The app loads the trip's activities, and + opens the
+existing form. Save waits for the backend and only closes on success. Failures
+keep the draft open for retry. Relaunch the app to confirm the activity reloads;
+Edit and Delete also persist through the API. Only SwiftUI previews use samples.
+Demo data lasts until the demo server stops; live DynamoDB data survives backend
+and app restarts.
+
+`localhost` in a simulator points at its Mac, not a teammate's Windows machine.
+For a backend on another computer or a physical phone, configure a reachable
+host and appropriate networking/HTTPS instead. Never embed AWS credentials in
+the client. See [the Mac acceptance checklist](doc/activity-prototype.md).
+
 ## Repository
 
 - `ios/`: App, Models, Views, ViewModels, Services, Resources, and Xcode project.
@@ -64,8 +106,7 @@ See [API setup and contract](doc/api.md) for DynamoDB and client integration det
 - `.github/`: CI and pull request template.
 
 Open `ios/SyncTrip.xcodeproj` on a Mac. The target retains its original name and
-deployment settings. The UI still uses local sample activities; connecting it to
-the HTTP API is a separate task.
+deployment settings. The runtime UI now loads and saves activities through the API.
 
 ## Tests
 
@@ -76,7 +117,9 @@ npm test
 
 Python integration tests use Moto to emulate DynamoDB with dummy credentials;
 they do not read or write your AWS account. JavaScript tests require Node 22+ and
-have no npm dependencies. CI runs both suites on pushes and pull requests.
+have no npm dependencies. On a Mac with Swift 6+, also run `swift test` to test
+the actual Swift model, API client, and store. CI runs all three suites on pushes
+and pull requests. Swift tests do not replace an Xcode build/UI acceptance check.
 There are no system tests yet; that directory is reserved for deployed tests.
 
 ## Existing prototypes
@@ -94,8 +137,8 @@ The original work remains available under these paths:
 
 The CLI and two competing synchronization prototypes are preserved for reference;
 the HTTP API does not import them. Run legacy tools from their own directories
-using their READMEs. The CLI can modify live DynamoDB records; the new endpoint
-only reads them. No CRDT implementation has been selected for production.
+using their READMEs. The CLI uses the old activity schema; prefer the API for new
+activity records. No CRDT implementation has been selected for production.
 
 Follow [team guidelines](doc/GUIDELINES.md) and [development conventions](doc/AGENTS.md).
 Create a feature branch, update docs, run tests, and request a teammate review.

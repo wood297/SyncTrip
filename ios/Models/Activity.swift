@@ -5,7 +5,7 @@
 
 import Foundation
 
-enum ActivityType: String, CaseIterable, Identifiable {
+enum ActivityType: String, Codable, CaseIterable, Identifiable {
     case flight, food, transport, hotel, custom
 
     var id: String { rawValue }
@@ -43,7 +43,7 @@ enum ActivityType: String, CaseIterable, Identifiable {
     }
 }
 
-struct Activity: Identifiable {
+struct Activity: Identifiable, Codable {
     var id = UUID()
     var type: ActivityType
     var title: String

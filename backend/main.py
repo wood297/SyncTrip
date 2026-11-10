@@ -7,11 +7,19 @@ from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
 from backend.routes.trips import router
+from backend.routes.activities import router as activities_router
+from backend.services.activities import ActivityError
 from backend.services.trips import TripNotFound
 
 logger = logging.getLogger(__name__)
 app = FastAPI(title="SyncTrip API", version="0.1.0")
 app.include_router(router)
+app.include_router(activities_router)
+
+
+@app.exception_handler(ActivityError)
+async def activity_error(request: Request, error: ActivityError):
+    return JSONResponse(status_code=error.status_code, content={"detail": error.detail})
 
 
 @app.get("/health", tags=["health"])

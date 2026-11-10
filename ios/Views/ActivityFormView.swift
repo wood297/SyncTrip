@@ -9,10 +9,12 @@ import SwiftUI
 struct ActivityFormView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var draft: Activity
+    @State private var isSaving = false
+    @State private var saveError: String?
     let isNew: Bool
-    let onSave: (Activity) -> Void
+    let onSave: (Activity) async throws -> Void
 
-    init(activity: Activity, isNew: Bool, onSave: @escaping (Activity) -> Void) {
+    init(activity: Activity, isNew: Bool, onSave: @escaping (Activity) async throws -> Void) {
         _draft = State(initialValue: activity)
         self.isNew = isNew
         self.onSave = onSave
@@ -47,20 +49,36 @@ struct ActivityFormView: View {
                         .lineLimit(3...6)
                 }
             }
+            .disabled(isSaving)
             .navigationTitle(isNew ? "New Activity" : "Edit Activity")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
+                        .disabled(isSaving)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        onSave(cleaned)
-                        dismiss()
+                    Button(isSaving ? "Saving…" : "Save") {
+                        isSaving = true
+                        Task { @MainActor in
+                            defer { isSaving = false }
+                            do {
+                                try await onSave(cleaned)
+                                dismiss()
+                            } catch {
+                                saveError = error.localizedDescription
+                            }
+                        }
                     }
-                    .disabled(!isValid)
+                    .disabled(!isValid || isSaving)
                 }
             }
+            .interactiveDismissDisabled(isSaving)
+            .alert("Couldn’t save activity", isPresented: Binding(
+                get: { saveError != nil }, set: { if !$0 { saveError = nil } }
+            )) {
+                Button("OK", role: .cancel) { saveError = nil }
+            } message: { Text(saveError ?? "") }
             // Keep end after start when start moves later
             .onChange(of: draft.start) { _, newStart in
                 if draft.end < newStart {
@@ -71,13 +89,15 @@ struct ActivityFormView: View {
     }
 
     private var isValid: Bool {
-        !draft.title.trimmingCharacters(in: .whitespaces).isEmpty && draft.end >= draft.start
+        !draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && draft.title.count <= 200 && draft.notes.count <= 5000
+            && draft.end >= draft.start
     }
 
     // Trim text and drop empty fields or ones left over from a previously selected type
     private var cleaned: Activity {
         var activity = draft
-        activity.title = activity.title.trimmingCharacters(in: .whitespaces)
+        activity.title = activity.title.trimmingCharacters(in: .whitespacesAndNewlines)
         activity.details = activity.details
             .mapValues { $0.trimmingCharacters(in: .whitespaces) }
             .filter { activity.type.fields.contains($0.key) && !$0.value.isEmpty }

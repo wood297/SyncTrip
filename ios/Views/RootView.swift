@@ -43,5 +43,5 @@ struct RootView: View {
 
 #Preview {
     RootView()
-        .environment(TripStore())
+        .environment(TripStore(previewActivities: Activity.samples))
 }

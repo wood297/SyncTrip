@@ -1,5 +1,21 @@
 # Validation
 
+## Activity flow implementation
+
+- Full Python suite: **40 passed**, one existing Starlette/httpx adapter
+  deprecation warning, zero failures.
+- Existing peer-sync suite: **5 passed**, zero failures.
+- Running demo HTTP flow: **6 passed** (create, reload persisted record, retry
+  without duplicate, edit, invalid input rejection, delete/cleanup).
+- No live AWS records were written during activity-flow implementation. The
+  earlier live trip001 read check below remains read-only evidence; it does not
+  establish UpdateItem permission.
+- Added Swift client/store tests and a macOS CI job. They have **not been run**
+  here because Swift/Xcode is unavailable on this Windows host. The full UI build
+  and simulator checklist in activity-prototype.md remain to be executed on a Mac.
+
+## Initial read-only endpoint verification
+
 Validated locally on November 10, 2026, with Python 3.12 on Windows:
 
 - `python -m pytest -q -o faulthandler_timeout=20`: **14 passed**, one dependency

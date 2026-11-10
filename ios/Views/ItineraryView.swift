@@ -12,7 +12,17 @@ struct ItineraryView: View {
 
     var body: some View {
         Group {
-            if store.activities.isEmpty {
+            if store.isLoading && !store.hasLoaded {
+                ProgressView("Loading itinerary…")
+            } else if let error = store.loadError, !store.hasLoaded {
+                ContentUnavailableView {
+                    Label("Couldn’t load itinerary", systemImage: "wifi.exclamationmark")
+                } description: {
+                    Text(error)
+                } actions: {
+                    Button("Retry") { Task { await store.refresh() } }
+                }
+            } else if store.activities.isEmpty {
                 ContentUnavailableView("No activities yet",
                                        systemImage: "calendar.badge.plus",
                                        description: Text("Tap + to add one."))
@@ -30,6 +40,20 @@ struct ItineraryView: View {
                 }
             }
         }
+        .safeAreaInset(edge: .bottom) {
+            if store.legacyActivityCount > 0 {
+                Text("\(store.legacyActivityCount) older activities need conversion before they can appear here.")
+                    .font(.footnote).padding().background(.regularMaterial)
+            }
+        }
+        .task { if !store.hasLoaded { await store.refresh() } }
+        .refreshable { await store.refresh() }
+        .alert("Couldn’t refresh itinerary", isPresented: Binding(
+            get: { store.loadError != nil && store.hasLoaded },
+            set: { if !$0 { store.loadError = nil } }
+        )) {
+            Button("OK", role: .cancel) { store.loadError = nil }
+        } message: { Text(store.loadError ?? "") }
         .navigationTitle("Itinerary")
         .navigationDestination(for: UUID.self) { id in
             ActivityDetailView(activityID: id)
@@ -42,10 +66,13 @@ struct ItineraryView: View {
                     Image(systemName: "plus")
                 }
                 .accessibilityLabel("Add activity")
+                .disabled(!store.hasLoaded || store.isLoading)
             }
         }
         .sheet(isPresented: $showAdd) {
-            ActivityFormView(activity: .blank(), isNew: true) { store.save($0) }
+            ActivityFormView(activity: .blank(), isNew: true) {
+                try await store.save($0, isNew: true)
+            }
         }
     }
 }
@@ -105,5 +132,5 @@ extension ActivityType {
     NavigationStack {
         ItineraryView()
     }
-    .environment(TripStore())
+    .environment(TripStore(previewActivities: Activity.samples))
 }

@@ -36,8 +36,12 @@ def main():
             "trip_id": "demo-trip", "name": "SyncTrip verification demo",
             "destination": "Chicago", "start_date": "11-14-2026",
             "status": "planning", "activities": {
-                "museum": {"title": "Museum visit", "scheduled_at": "2026-11-14 10:00",
-                           "location": "Chicago"},
+                "0c09f97c-04c7-4d16-bf86-8b1a2adf54be": {
+                    "id": "0c09f97c-04c7-4d16-bf86-8b1a2adf54be",
+                    "type": "custom", "title": "Museum visit",
+                    "start": "2026-11-14T16:00:00Z", "end": "2026-11-14T18:00:00Z",
+                    "details": {"Location": "Chicago"}, "notes": "",
+                },
             },
         })
         print("DEMO MODE: disposable emulated DynamoDB; no live AWS access.", flush=True)

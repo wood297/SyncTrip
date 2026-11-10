@@ -1,8 +1,14 @@
 """Database access without HTTP or presentation logic."""
 import boto3
+from boto3.dynamodb.conditions import Attr
 from botocore.config import Config
+from botocore.exceptions import ClientError
 
 from backend.config import Settings
+
+
+class ConcurrentChange(Exception):
+    pass
 
 
 class TripRepository:
@@ -12,6 +18,22 @@ class TripRepository:
     def get_trip(self, trip_id: str) -> dict | None:
         response = self.table.get_item(Key={"trip_id": trip_id}, ConsistentRead=True)
         return response.get("Item")
+
+    def save_activities(self, trip_id: str, activities: dict, previous: dict):
+        condition = Attr("activities").eq(previous)
+        if not previous:
+            condition = condition | Attr("activities").not_exists()
+        try:
+            self.table.update_item(
+                Key={"trip_id": trip_id},
+                UpdateExpression="SET activities = :activities",
+                ExpressionAttributeValues={":activities": activities},
+                ConditionExpression=Attr("trip_id").exists() & condition,
+            )
+        except ClientError as error:
+            if error.response["Error"]["Code"] == "ConditionalCheckFailedException":
+                raise ConcurrentChange from error
+            raise
 
 
 def get_repository() -> TripRepository:
