@@ -18,5 +18,5 @@ src/crdt.js        causality, state fold, conflict detection
 src/replica.js     one device's copy of the trip
 src/net.js         peer discovery and sync over the local network
 src/cli.js         one device, one terminal
-test/              the test suite
+../../../../tests/sync/   the test suite (run npm test from this directory or repo root)
 ```

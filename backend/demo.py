@@ -1,0 +1,50 @@
+"""Start the real API against a disposable, seeded Moto DynamoDB table.
+
+Run: python -m backend.demo
+Requires requirements-dev.txt. All demo data disappears when this process exits.
+"""
+import argparse
+import os
+
+import boto3
+import uvicorn
+from moto import mock_aws
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--port", type=int, default=8000)
+    args = parser.parse_args()
+    # These changes affect only this demo process, never the user's AWS config.
+    for key in ("AWS_PROFILE", "AWS_DEFAULT_PROFILE", "DYNAMODB_ENDPOINT_URL"):
+        os.environ.pop(key, None)
+    os.environ.update(
+        AWS_ACCESS_KEY_ID="testing",
+        AWS_SECRET_ACCESS_KEY="testing",
+        AWS_SESSION_TOKEN="testing",
+        AWS_REGION="us-east-2",
+        DYNAMODB_TABLE_NAME="SyncTripTrips",
+    )
+    with mock_aws():
+        table = boto3.resource("dynamodb", region_name="us-east-2").create_table(
+            TableName="SyncTripTrips",
+            KeySchema=[{"AttributeName": "trip_id", "KeyType": "HASH"}],
+            AttributeDefinitions=[{"AttributeName": "trip_id", "AttributeType": "S"}],
+            BillingMode="PAY_PER_REQUEST",
+        )
+        table.put_item(Item={
+            "trip_id": "demo-trip", "name": "SyncTrip verification demo",
+            "destination": "Chicago", "start_date": "11-14-2026",
+            "status": "planning", "activities": {
+                "museum": {"title": "Museum visit", "scheduled_at": "2026-11-14 10:00",
+                           "location": "Chicago"},
+            },
+        })
+        print("DEMO MODE: disposable emulated DynamoDB; no live AWS access.", flush=True)
+        print(f"Open http://127.0.0.1:{args.port}/docs and retrieve demo-trip", flush=True)
+        # No reload/workers: the Moto context must stay in this process.
+        uvicorn.run("backend.main:app", host="127.0.0.1", port=args.port)
+
+
+if __name__ == "__main__":
+    main()

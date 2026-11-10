@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Replica, sync } from '../src/replica.js';
+import { Replica, sync } from '../../backend/services/prototypes/peer_sync/src/replica.js';
 
 const snapshot = r => JSON.stringify(r.state().sort((a, b) => a.id.localeCompare(b.id)));
 

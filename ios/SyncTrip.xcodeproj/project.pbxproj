@@ -13,7 +13,7 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		000000000000000000000010 /* Senior Design - Exercise 3 */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Senior Design - Exercise 3";
+			path = .;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
