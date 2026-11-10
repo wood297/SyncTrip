@@ -1,53 +1,47 @@
-# Validation
+# Verification record
 
-## Activity flow implementation
+Date: November 10, 2026. Host: Windows, Python 3.12 in the project-local .venv.
 
-- Full Python suite: **40 passed**, one existing Starlette/httpx adapter
-  deprecation warning, zero failures.
+## Final two-table implementation
+
+- Live AWS schema/access check: PASS. SyncTripTrips has string hash key trip_id;
+  SyncTripActivities has string hash key trip_id and string range key activity_id.
+  Both tables ACTIVE in us-east-2. The default configured AWS profile was used.
+- Full actual-HTTP demo verification: 12 checks passed, temporary records removed.
+- Full actual-HTTP live AWS verification: 12 checks passed, temporary records
+  removed. Covered trip creation/listing/updates, activity creation/individual
+  read/listing, persistence, duplicate retry, trip isolation, versioned update,
+  stale-edit rejection, invalid input, activity deletion/retry, and trip cascade.
+- Final Python suite: **56 passed**, zero failures, one existing Starlette/httpx
+  test-client deprecation warning. Command: `python -m pytest -q -o faulthandler_timeout=20`.
 - Existing peer-sync suite: **5 passed**, zero failures.
-- Running demo HTTP flow: **6 passed** (create, reload persisted record, retry
-  without duplicate, edit, invalid input rejection, delete/cleanup).
-- No live AWS records were written during activity-flow implementation. The
-  earlier live trip001 read check below remains read-only evidence; it does not
-  establish UpdateItem permission.
-- Added Swift client/store tests and a macOS CI job. They have **not been run**
-  here because Swift/Xcode is unavailable on this Windows host. The full UI build
-  and simulator checklist in activity-prototype.md remain to be executed on a Mac.
+- Swift tests and Xcode/simulator acceptance: NOT RUN. Swift/Xcode is unavailable
+  on this Windows host. Added model/client/store tests and a macOS CI job; those
+  are not evidence of a successful build until a Mac actually runs them.
 
-## Initial read-only endpoint verification
+Integration tests
+use two Moto tables and dummy AWS credentials, not the live account. They cover
+pagination, custom table names, invalid schemas, version conflicts, missing
+parents, and interrupted deletion recovery in addition to the HTTP CRUD paths.
 
-Validated locally on November 10, 2026, with Python 3.12 on Windows:
+Live write checks used two uniquely named api-check trips, not any of the four
+existing trips. No existing trip metadata or legacy activity maps were changed.
+No AWS tables, IAM policies, or infrastructure settings were modified. A low-level
+cleanup read check independently verifies that the live verification IDs are absent.
 
-- `python -m pytest -q -o faulthandler_timeout=20`: **14 passed**, one dependency
-  warning. Starlette warns that its httpx TestClient adapter is deprecated in
-  favor of httpx2. No test failed.
-- `node --test tests/sync/peer_sync.test.js`: **5 passed**, zero failures.
-- `git diff --check`: passed for tracked changes.
-- Original tracked-file inventory: every file accounted for after relocation.
-  Application logic in the original prototypes and Swift files was preserved;
-  Xcode source root, test imports, npm script paths, and documentation were updated.
+## Earlier prototype work
 
-Sandboxed Python HTTP test runs stalled; the successful full run used the same
-project-local virtual environment outside the sandbox.
+The previous embedded-map version and read-only endpoint were verified in earlier
+runs, but are superseded by this two-table implementation. Earlier test counts
+are not the current result. The original four trip records remain readable,
+including mixed legacy start_date formats. New date writes use YYYY-MM-DD.
 
-## Running-server verification
+## Limits of this verification
 
-Repeated the Python suite after adding the demo: **14 passed**, same dependency
-warning. Started two temporary Uvicorn servers and used `scripts/verify_api.py`
-to send actual HTTP requests:
-
-- Isolated demo (`python -m backend.demo --port 8766`): **5 HTTP checks passed**.
-- Live AWS (`python -m uvicorn backend.main:app --host 127.0.0.1 --port 8767`),
-  with `AWS_PROFILE=default`, `AWS_REGION=us-east-2`, and
-  `DYNAMODB_TABLE_NAME=SyncTripTrips`: **5 HTTP checks passed**, using the
-  user-provided existing `trip001`.
-
-The checks cover liveness, OpenAPI, successful trip retrieval, missing-trip 404,
-and invalid-ID 422. Both temporary servers were stopped afterward. No live
-records were written, and no AWS resources were created or changed.
-
-Automated DynamoDB tests and the demo use Moto and dummy credentials. The live
-check establishes successful GetItem access and response serialization for
-`trip001`; it does not validate every existing record, write permissions, or
-other accounts. Deployment, GitHub-hosted CI, branch protection, and iOS builds
-remain unverified.
+Live success proves the tested identity can perform these database operations;
+other teammates/deployment identities need the same documented permissions.
+The complete backend runs locally; public deployment, authentication, trip
+membership authorization, offline queues, and CRDT integration are not implemented.
+Metadata updates are last-successful-write. Activity updates use version checks.
+List endpoints consume all DynamoDB pages internally and return full prototype
+lists, not an unbounded production pagination contract.

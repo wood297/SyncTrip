@@ -10,11 +10,25 @@ from backend.routes.trips import router
 from backend.routes.activities import router as activities_router
 from backend.services.activities import ActivityError
 from backend.services.trips import TripNotFound
+from backend.setup import ConfigurationError, check_tables
+from backend.database.trips import aws_connections
 
 logger = logging.getLogger(__name__)
 app = FastAPI(title="SyncTrip API", version="0.1.0")
 app.include_router(router)
 app.include_router(activities_router)
+
+
+@app.get("/ready", tags=["health"], responses={503: {"description": "Database not ready"}})
+def ready():
+    settings, _, client = aws_connections()
+    return check_tables(settings, client)
+
+
+@app.exception_handler(ConfigurationError)
+async def configuration_error(request: Request, error: ConfigurationError):
+    logger.error("Database schema/configuration check failed")
+    return JSONResponse(status_code=503, content={"detail": "Database configuration is not ready"})
 
 
 @app.exception_handler(ActivityError)
@@ -36,11 +50,12 @@ async def not_found(request: Request, error: TripNotFound):
 @app.exception_handler(BotoCoreError)
 @app.exception_handler(ClientError)
 async def database_error(request: Request, error: Exception):
-    logger.warning("DynamoDB request failed (%s)", type(error).__name__)
+    code = error.response["Error"]["Code"] if isinstance(error, ClientError) else type(error).__name__
+    logger.warning("DynamoDB request failed (%s)", code)
     return JSONResponse(status_code=503, content={"detail": "Database unavailable"})
 
 
 @app.exception_handler(ValidationError)
 async def invalid_record(request: Request, error: ValidationError):
-    logger.error("Stored trip does not match the response schema")
-    return JSONResponse(status_code=500, content={"detail": "Invalid stored trip"})
+    logger.error("Stored record does not match the response schema")
+    return JSONResponse(status_code=500, content={"detail": "Invalid stored record"})

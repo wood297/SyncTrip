@@ -61,6 +61,15 @@ struct ItineraryView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
+                    Task { await store.refresh() }
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .accessibilityLabel("Refresh itinerary")
+                .disabled(store.isLoading)
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
                     showAdd = true
                 } label: {
                     Image(systemName: "plus")

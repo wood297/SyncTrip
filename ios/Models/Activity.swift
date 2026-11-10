@@ -45,6 +45,7 @@ enum ActivityType: String, Codable, CaseIterable, Identifiable {
 
 struct Activity: Identifiable, Codable {
     var id = UUID()
+    var version: Int? = nil
     var type: ActivityType
     var title: String
     var start: Date

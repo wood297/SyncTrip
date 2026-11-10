@@ -13,6 +13,16 @@ jobs:
       - run: python -m venv .venv
       - run: .venv/bin/python -m pip install -r requirements-dev.txt
       - run: .venv/bin/python -m pytest -q
+      - name: Verify running two-table API
+        run: |
+          .venv/bin/python -m backend.demo --port 8780 &
+          demo_pid=$!
+          trap 'kill "$demo_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent http://127.0.0.1:8780/health > /dev/null; then break; fi
+            sleep 1
+          done
+          .venv/bin/python scripts/verify_backend.py --base-url http://127.0.0.1:8780 --allow-writes
   sync:
     runs-on: ubuntu-latest
     steps:

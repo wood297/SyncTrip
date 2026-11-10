@@ -44,6 +44,7 @@ def main():
         assert request("POST", base, {201}, activity) == created
         assert sum(a["id"] == activity_id for a in request("GET", base, {200})["activities"]) == 1
         print("PASS: retry did not create a duplicate")
+        activity["version"] = created["version"]
         activity["title"] = "Updated verification activity"
         edited = request("PUT", base + "/" + activity_id, {200}, activity)
         assert edited in request("GET", base, {200})["activities"]

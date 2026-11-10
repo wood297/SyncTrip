@@ -1,138 +1,183 @@
-# SyncTrip API
+# SyncTrip API contract
 
-## Scope and configuration
+## Storage and configuration
 
-The online activity prototype uses the same fields as `ios/Models/Activity.swift`.
-AWS resources are configured with `AWS_REGION` (default `us-east-2`),
-`DYNAMODB_TABLE_NAME` (default `SyncTripTrips`), and the standard AWS credential
-provider chain (`AWS_PROFILE` for local development). Optional
-`DYNAMODB_ENDPOINT_URL` selects DynamoDB Local. `.env` is not loaded automatically.
-The existing table has a string partition key `trip_id` and no sort key.
+- Trips table: string partition key trip_id; no sort key.
+- Activities table: string partition key trip_id, string sort key activity_id.
+- One activity per item. No embedded activity-map writes and no table per trip.
+- Both tables must be in the same AWS account and region (transactions span them).
 
-The backend identity needs `dynamodb:GetItem` and `dynamodb:UpdateItem`:
+| Environment setting | Default |
+| --- | --- |
+| AWS_REGION | us-east-2 |
+| DYNAMODB_TRIPS_TABLE | SyncTripTrips |
+| DYNAMODB_ACTIVITIES_TABLE | SyncTripActivities |
+| DYNAMODB_ENDPOINT_URL | unset; optional DynamoDB Local endpoint |
+| AWS_PROFILE | SDK default credential provider chain |
+
+DYNAMODB_TABLE_NAME remains a fallback for the trips table only; the new explicit
+DYNAMODB_TRIPS_TABLE takes precedence. Names can change without source edits, but
+the documented key schemas are required. Configuration is read per request.
+.env.example is a reference; .env is not loaded automatically. The app never
+receives AWS credentials or table names.
+
+Run `python -m backend.setup --check` to validate names, key types, ACTIVE status,
+and read permissions. `--create-missing` is a separate explicit provisioning
+operation and requires CreateTable permission; normal API requests never create
+or alter tables. [iam-policy.json](iam-policy.json) defines the runtime permissions;
+replace ACCOUNT_ID and the resource names as needed. Transactions use underlying
+PutItem/DeleteItem/ConditionCheckItem permissions, as described in
+[AWS's transaction IAM documentation](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/transaction-apis-iam.html).
+
+## Health and API reference
+
+- GET /health: process liveness only, no AWS calls.
+- GET /ready: 200 with region/table summaries after schema and read checks;
+  503 if unavailable or incorrectly configured. Does not test write permissions.
+- /docs: interactive requests. /openapi.json: generated machine-readable contract.
+
+## Trips
+
+| Method | Path | Result |
+| --- | --- | --- |
+| GET | /api/v1/trips | 200 `{"trips":[metadata...]}` |
+| POST | /api/v1/trips | 201 trip |
+| GET | /api/v1/trips/{trip_id} | 200 trip with activities map |
+| PUT | /api/v1/trips/{trip_id} | 200 trip after metadata replacement |
+| PATCH | /api/v1/trips/{trip_id} | 200 trip after partial metadata update |
+| DELETE | /api/v1/trips/{trip_id} | 204, trip and activities removed |
+
+Create example:
 
 ```json
 {
-  "Version": "2012-10-17",
-  "Statement": [{
-    "Effect": "Allow",
-    "Action": ["dynamodb:GetItem", "dynamodb:UpdateItem"],
-    "Resource": "arn:aws:dynamodb:us-east-2:ACCOUNT_ID:table/SyncTripTrips"
-  }]
+  "trip_id": "my-trip-001",
+  "name": "Winter trip",
+  "destination": "Chicago",
+  "start_date": "2027-01-01",
+  "status": "planning"
 }
 ```
 
-Replace ACCOUNT_ID; adjust the region/table if needed. Credentials stay on the
-backend, never in the app. The legacy CLI also supports trip management but is
-not imported by the HTTP server. Creating trips is outside this activity flow;
-select an existing trip (`demo-trip` is seeded by `python -m backend.demo`).
+New trip IDs use 1-128 letters/digits/underscores/hyphens. Omit trip_id to generate
+a UUID; clients that need safe creation retries should generate and retain their
+own ID. Same ID and matching metadata returns 201 without replacing the trip;
+same ID with different metadata returns 409. Treat trip IDs as permanent identity
+and use a fresh ID for a new trip instead of reusing a deleted trip ID.
 
-## Endpoints
+name/destination are trimmed nonempty strings, at most 200 characters. New writes
+use valid YYYY-MM-DD dates and status planning/active/completed/cancelled (default
+planning). Existing records' date strings, including 12/25/26, are returned
+unchanged. PUT requires name/destination/start_date, defaults status to planning,
+and does not accept trip_id or activities. PATCH accepts any nonempty subset of
+metadata fields; explicit nulls and unknown fields are rejected. Both update
+metadata only, preserving activities. Metadata updates are last-successful-write;
+activity edits use versions as specified below.
 
-| Method | Path | Success |
+Trip listing returns metadata without loading activities. A trip GET preserves
+the original activities-map response shape, combining legacy embedded records
+with new-table records; new-table records take precedence for matching IDs.
+Use GET activities for the canonical list consumed by Swift.
+
+## Activities
+
+| Method | Path | Result |
 | --- | --- | --- |
-| GET | `/health` | 200 process liveness, no database check |
-| GET | `/api/v1/trips/{trip_id}` | 200 existing trip, with raw activities map |
-| GET | `/api/v1/trips/{trip_id}/activities` | 200 canonical activities list and legacy count |
-| POST | `/api/v1/trips/{trip_id}/activities` | 201 saved activity |
-| PUT | `/api/v1/trips/{trip_id}/activities/{activity_id}` | 200 fully replaced activity |
-| DELETE | `/api/v1/trips/{trip_id}/activities/{activity_id}` | 204 empty response |
+| GET | /api/v1/trips/{trip_id}/activities | 200 activities envelope |
+| POST | /api/v1/trips/{trip_id}/activities | 201 saved activity |
+| GET | /api/v1/trips/{trip_id}/activities/{activity_id} | 200 saved activity |
+| PUT | /api/v1/trips/{trip_id}/activities/{activity_id} | 200 replaced activity |
+| DELETE | /api/v1/trips/{trip_id}/activities/{activity_id} | 204 |
 
-Interactive explorer: `/docs`. Machine-readable contract: `/openapi.json`.
-Trip IDs must be nonempty, without whitespace, and at most 2048 characters.
-Use simple path-safe IDs; slash-containing trip IDs are unsupported by this route.
-
-## Activity contract (POST, PUT, and responses)
+Create example (trip must exist):
 
 ```json
 {
   "id": "a7c61442-18e3-496e-8d81-d16b75412813",
   "type": "custom",
   "title": "Museum visit",
-  "start": "2026-11-14T10:00:00-06:00",
-  "end": "2026-11-14T12:00:00-06:00",
+  "start": "2027-01-01T10:00:00-06:00",
+  "end": "2027-01-01T12:00:00-06:00",
   "details": {"Location": "Chicago"},
   "notes": "Bring tickets"
 }
 ```
 
-- `id`: UUID. The Swift draft generates it once; reuse the same ID and payload
-  when retrying a failed create. If omitted, the API generates an ID, but a client
-  cannot safely retry that request without risking a duplicate. PUT requires the
-  body ID to match the path ID.
-- `type`: flight, food, transport, hotel, or custom.
-- `title`: required, trimmed, 1-200 characters.
-- `start`, `end`: required ISO 8601 timestamps including timezone. Numeric epochs
-  and timezone-free times are rejected. End may equal start, but may not precede
-  it. The server normalizes timestamps to UTC. Swift renders them in device time.
-- `details`: optional string-to-string map (default `{}`), at most 20 entries;
-  keys 1-100 characters, values at most 2000 characters. The Swift form uses its
-  existing field labels, e.g. Location, Flight number, From, To, Hotel.
-- `notes`: optional string (default empty), at most 5000 characters.
-- Unknown fields are rejected to catch schema mismatches.
+The saved response has the same fields plus `"version": 1`. Times normalize to
+UTC (16:00Z/18:00Z in this example). The API id becomes activity_id in DynamoDB;
+trip_id comes from the URL and cannot be reassigned in the request body.
 
-POST returns the saved activity, including its ID and normalized timestamps.
-Repeating POST with the same ID and semantically equivalent normalized content
-returns 201 and the same activity without adding a second item. The same ID with
-different content returns 409; use PUT to edit. DELETE returns 404 if the activity
-is already absent; refresh the itinerary after an ambiguous delete failure.
+- id: UUID. Generate once in the Swift draft and reuse when retrying. Omitting it
+  generates a server ID, but then a lost-response retry can create a duplicate.
+- version: server-assigned positive integer; include the last received version
+  on PUT. Never increment it in the client. The server increments successful edits.
+- type: flight, food, transport, hotel, custom.
+- title: required, trimmed, 1-200 characters.
+- start/end: required ISO 8601 with timezone, no numeric epochs or timezone-free
+  times. End cannot precede start; equal times are allowed to match the form.
+- details: optional string map, default empty; at most 20 entries, keys 1-100
+  characters, values at most 2000. Uses Swift's existing field labels.
+- notes: optional string, default empty; at most 5000 characters.
+- Unknown fields are rejected.
 
-GET activities returns:
+PUT is a full replacement, not a partial patch. Body id must match the path UUID.
+A stale version with different content returns 409. A retry whose content already
+matches the saved activity returns the current version without another write.
+POST of the same ID/content is also idempotent and returns 201; different content
+under that ID returns 409. DELETE of an already absent activity returns 204 when
+the parent trip still exists. Missing parent trips return 404.
+
+List envelope:
 
 ```json
-{
-  "activities": [],
-  "legacy_activity_count": 0
-}
+{"activities": [], "legacy_activity_count": 0}
 ```
 
-Canonical records are sorted by start instant and ID. The trip GET retains its
-original response and raw activities map so existing consumers do not break.
+Activities are sorted by start instant then ID. Storage Query follows every
+LastEvaluatedKey page, so results are not silently cut off at DynamoDB's page
+boundary. Trip listing similarly follows every Scan page. These endpoints return
+complete lists for the prototype; they do not offer client cursor pagination.
+Very large lists need a future paginated API version rather than assuming this
+prototype is an unlimited public service.
 
-## Persistence and concurrent requests
+## Integrity, retries, and legacy data
 
-Activities remain embedded under `trip.activities[uuid]`; no table migration or
-new index is needed for new writes. An UpdateItem writes only the activities
-attribute, preserving the rest of the trip. A condition checks that the trip still
-exists and the activity map still matches the read snapshot. Conflicts retry up
-to three times against a fresh read; exhausted conflicts return 409. This preserves
-another traveler's concurrent addition and prevents resurrecting deleted trips.
-See [AWS conditional-update guidance](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/BestPractices_ImplementingVersionControl.html).
+Each activity transaction checks that the parent trip exists and is not deleting,
+then conditionally writes/deletes only that activity. Distinct travelers' additions
+cannot replace each other's records. Updates compare the version in the same
+transaction. Conditional conflicts retry up to three times or return 409.
 
-This is online CRUD, not CRDT synchronization. Concurrent edits to the same
-activity can still resolve to the last successful update; field-level merges and
-activity versions are future sync work. Embedded maps remain subject to DynamoDB's
-400 KB item limit; this prototype is not an unbounded itinerary storage design.
-A storage-size failure currently returns the generic database error (503).
+Trip deletion first marks the trip as deleting, which blocks transactional
+activity saves. It deletes its activity records and finally the trip. A failure
+returns 503; retry the same DELETE to resume. Deletion is a recoverable cascade,
+not one atomic transaction across an arbitrary number of activities. Trips being
+deleted are hidden from the list; direct reads/edits return 409. Deleting a missing
+trip returns 204. All application writes should use the API; direct console writes
+can bypass these safeguards.
 
-## Legacy records
+Existing embedded maps remain untouched. GET activities reports embedded IDs
+absent from the new table as legacy_activity_count, and the app shows a notice.
+It does not invent missing type/end/timezone fields. No automatic data migration
+was performed. Malformed new-table activities return 500 rather than disappearing
+silently. New API writes always create fully validated independent records.
 
-Old CLI records have scheduled_at/location but no type, end, or timezone. They
-remain untouched by new writes. GET activities omits records that cannot validate
-against the new contract and reports their number as `legacy_activity_count`;
-the UI displays a conversion notice. The original trip GET still exposes them.
-No timezone, duration, or type is guessed. Team-approved conversion can be added
-later, or use a fresh prototype trip. A non-map activities attribute returns 409
-instead of overwriting data. Avoid using the legacy CLI to edit new-schema records.
-
-## Errors
+## Errors and deployment boundary
 
 | Status | Meaning |
 | --- | --- |
-| 404 | Trip or activity not found |
-| 409 | Duplicate ID with different content, concurrent save, or legacy map requiring migration |
-| 422 | Invalid request fields/IDs/timestamps |
-| 503 | AWS identity/permissions, missing table, connectivity, throttling, or storage failure |
-| 500 | Existing trip does not match the trip response schema |
+| 404 | Trip/activity not found |
+| 409 | Conflicting ID, stale activity version, concurrent change, or deletion in progress |
+| 422 | Invalid input, missing edit version, or mismatched activity ID |
+| 503 | AWS identity/permissions, configuration, missing table, throttling, connectivity, or interrupted deletion |
+| 500 | Invalid stored record |
 
-Domain errors use `{"detail":"message"}`; normal request validation uses FastAPI's
-structured detail array. Raw AWS messages and credentials are not returned.
-The app preserves the draft and existing local list on failed save/delete.
+Domain errors use `{"detail":"message"}`; FastAPI input validation normally uses
+a structured detail array. Raw AWS errors/credentials are not returned; backend
+logs record the AWS error code for diagnosis. After ambiguous create/edit failures,
+retry the same ID/payload; after an interrupted trip DELETE, retry DELETE.
 
-## Deployment boundary
-
-Run on loopback for local development. Authentication, membership authorization,
-and public hosting are not implemented; use a private prototype setup. Any client
-that can reach this server can operate on a known trip. Choose identity and enforce
-trip membership before exposing it publicly. CORS is not needed for a native
-URLSession client. The separate sync prototypes remain unchanged.
+This is the online database API. Authentication, trip membership checks, public
+hosting, and offline CRDT synchronization are not implemented. Keep the prototype
+private; add identity and membership authorization before public exposure. A native
+URLSession client does not need CORS. Hosting/authentication and offline sync do
+not require changing the agreed storage contract, but require their own work.

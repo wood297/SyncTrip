@@ -41,7 +41,7 @@ final class ActivityFlowTests: XCTestCase {
                                 end: Date(timeIntervalSince1970: 1794675600),
                                 details: ["Location": "Chicago"], notes: "Tickets")
         let payload: [String: Any] = [
-            "id": activity.id.uuidString.lowercased(), "type": "custom", "title": "Museum",
+            "id": activity.id.uuidString.lowercased(), "version": 1, "type": "custom", "title": "Museum",
             "start": "2026-11-14T16:00:00.000000Z", "end": "2026-11-14T17:00:00Z",
             "details": ["Location": "Chicago"], "notes": "Tickets"
         ]
@@ -72,6 +72,7 @@ final class ActivityFlowTests: XCTestCase {
         try await store.save(activity, isNew: true)
         XCTAssertEqual(store.activities.count, 1)
         XCTAssertEqual(store.activities[0].id, activity.id)
+        XCTAssertEqual(store.activities[0].version, 1)
         let listing = try json(["activities": [payload], "legacy_activity_count": 0])
         StubProtocol.handler = { _ in (200, listing) }
         let reloaded = TripStore(api: api, tripID: "demo-trip")
@@ -116,5 +117,35 @@ final class ActivityFlowTests: XCTestCase {
         XCTAssertTrue(store.hasLoaded)
         XCTAssertEqual(store.legacyActivityCount, 2)
         XCTAssertNil(store.loadError)
+    }
+
+    func testConflictKeepsSavedActivityAndVersion() async throws {
+        let store = TripStore(api: makeAPI(), tripID: "demo-trip")
+        let payload: [String: Any] = [
+            "id": UUID().uuidString, "version": 1, "type": "custom", "title": "Original",
+            "start": "2027-01-01T10:00:00Z", "end": "2027-01-01T11:00:00Z",
+            "details": [:] as [String: String], "notes": ""
+        ]
+        let listing = try json(["activities": [payload], "legacy_activity_count": 0])
+        StubProtocol.handler = { _ in (200, listing) }
+        await store.refresh()
+        var draft = try XCTUnwrap(store.activities.first)
+        draft.title = "Stale edit"
+        StubProtocol.handler = { request in
+            XCTAssertEqual(request.httpMethod, "PUT")
+            return (409, Data())
+        }
+        do {
+            try await store.save(draft, isNew: false)
+            XCTFail("Expected a conflict")
+        } catch {}
+        XCTAssertEqual(store.activities.first?.title, "Original")
+        XCTAssertEqual(store.activities.first?.version, 1)
+        StubProtocol.handler = { request in
+            XCTAssertEqual(request.httpMethod, "DELETE")
+            return (204, Data())
+        }
+        try await store.delete(id: draft.id)
+        XCTAssertTrue(store.activities.isEmpty)
     }
 }

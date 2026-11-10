@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Path, Response
 from backend.database.trips import TripRepository, get_repository
 from backend.models.activity import Activity, ActivityList
 from backend.models.trip import Error
-from backend.services.activities import ActivityError, list_activities, mutate_activity
+from backend.services.activities import ActivityError, get_activity, list_activities, mutate_activity
 
 router = APIRouter(prefix="/api/v1/trips", tags=["activities"], responses={
     404: {"model": Error}, 409: {"model": Error}, 503: {"model": Error},
@@ -18,6 +18,11 @@ Repository = Annotated[TripRepository, Depends(get_repository)]
 @router.get("/{trip_id}/activities", response_model=ActivityList)
 def get_activities(trip_id: TripID, repository: Repository):
     return list_activities(trip_id, repository)
+
+
+@router.get("/{trip_id}/activities/{activity_id}", response_model=Activity)
+def retrieve_activity(trip_id: TripID, activity_id: UUID, repository: Repository):
+    return get_activity(trip_id, str(activity_id), repository)
 
 
 @router.post("/{trip_id}/activities", response_model=Activity, status_code=201)

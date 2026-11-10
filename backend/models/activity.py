@@ -14,6 +14,7 @@ class Activity(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     id: UUID = Field(default_factory=uuid4)
+    version: int | None = Field(default=None, ge=1)
     type: Literal["flight", "food", "transport", "hotel", "custom"]
     title: Title
     start: AwareDatetime

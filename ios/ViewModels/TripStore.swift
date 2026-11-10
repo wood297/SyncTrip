@@ -11,6 +11,7 @@ class TripStore {
     var loadError: String?
     let tripID: String
     private let api: ActivityAPI?
+    private var mutationGeneration = 0
 
     init(api: ActivityAPI? = nil, tripID: String? = nil) {
         self.api = api ?? .configured()
@@ -44,8 +45,11 @@ class TripStore {
         isLoading = true
         loadError = nil
         defer { isLoading = false }
+        let generation = mutationGeneration
         do {
             let response = try await api.list(tripID: tripID)
+            // An older refresh response must not erase a save that just finished.
+            guard generation == mutationGeneration else { return }
             activities = response.activities
             legacyActivityCount = response.legacyActivityCount
             hasLoaded = true
@@ -66,10 +70,12 @@ class TripStore {
         } else {
             activities.append(saved)
         }
+        mutationGeneration += 1
     }
 
     func delete(id: UUID) async throws {
         if let api { try await api.delete(id: id, tripID: tripID) }
         activities.removeAll { $0.id == id }
+        mutationGeneration += 1
     }
 }

@@ -33,7 +33,7 @@ def test_malformed_record_returns_sanitized_error(client, table):
     table.put_item(Item={"trip_id": "broken", "private": "secret"})
     response = client.get("/api/v1/trips/broken")
     assert response.status_code == 500
-    assert response.json() == {"detail": "Invalid stored trip"}
+    assert response.json() == {"detail": "Invalid stored record"}
 
 
 def test_openapi_documents_contract(client):

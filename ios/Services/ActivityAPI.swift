@@ -72,8 +72,8 @@ final class ActivityAPI {
             let message: String
             switch http.statusCode {
             case 404: message = "The trip or activity was not found. Check the trip ID and refresh."
-            case 409: message = "The trip changed or this activity ID is already in use. Refresh and try again."
-            case 422: message = "Check the activity fields, title length, and start/end times."
+            case 409: message = "This activity or trip changed. Keep a copy of your edits, close the form, refresh the itinerary, and reopen the latest activity."
+            case 422: message = "Check the title (1–200 characters), notes (up to 5,000), details (up to 2,000 per value), and start/end times."
             case 503: message = "The database is unavailable. Your activity has not been confirmed saved. Try again."
             default: message = "The request failed (HTTP \(http.statusCode)). Try again."
             }
