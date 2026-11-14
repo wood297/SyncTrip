@@ -41,3 +41,9 @@ Xcode includes ios/ as a synchronized source group. App/Info.plist is a template
 excluded from source membership; it permits local networking. macOS builds permit
 outgoing sandbox connections. Codable models are nonisolated; the observable store
 and client explicitly use MainActor. No AWS credentials belong in the app.
+
+Shared iOS styling: ios/Views/Theme.swift holds the Figma colour tokens, card style,
+pill buttons, caps labels and avatars; ios/Views/Components.swift adds the grouped
+detail rows, text buttons and text styles used by form screens. Screens should use
+these instead of raw colours or font sizes. Amber is only for pending changes and
+approvals, and violet only for forks.
