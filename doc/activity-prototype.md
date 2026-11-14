@@ -51,13 +51,17 @@ verify_api.py --trip-id trip001 is the read-only alternative.
    These are configuration values, not AWS credentials or source edits.
 5. Build and launch. Verify loading and the seeded activity in demo mode. With
    live AWS, an empty activities list is valid for a trip with no saved activities.
-6. Tap +, fill type/title/times/details/notes, then Save. Save should stay pending
-   until success, then dismiss and display the returned activity.
+6. Tap +. The full-screen New activity form (Figma 03) opens with the next hour as
+   its time. Pick a type tile, enter a Name, optionally Where/Notes, then Review.
+   Review stays on "Saving…" until success, then dismisses and shows the activity.
+   (Review saves directly until the 05 Review & save screen is built.)
 7. Relaunch the app without restarting the backend. The activity should reload.
    Confirm it also exists through GET activities in /docs.
-8. Edit it, save, relaunch, and confirm the edit. Delete it and confirm it disappears
-   both in the UI and through GET activities. Only the selected activity is removed.
-9. Open a draft and stop the server before Save. An error should keep the form
+8. Open it, tap Edit (Figma 07), change the time, and check the new times show in
+   amber with a "Moved … (was …)" note. Review, relaunch, and confirm the edit.
+   Then Edit → Delete activity → Delete; it disappears from the UI and from GET
+   activities, and only the selected activity is removed.
+9. Open a draft and stop the server before Review. An error should keep the form
    and draft open. Restart and retry. Creation uses a stable UUID, so a successful
    request followed by a lost response does not create duplicates on retry.
 10. For a stale-edit check, edit one activity through /docs after opening it in the
