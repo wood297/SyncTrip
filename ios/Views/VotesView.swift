@@ -13,10 +13,22 @@ struct VotesView: View {
     var tripName: String = "Iceland Ring Road"
     @State var openVotes: [OpenVote] = OpenVote.samples
     var decided: [DecidedVote] = DecidedVote.samples
+    // Opens the app's side menu; the ☰ button is hidden when nil (e.g. previews)
+    var onMenu: (() -> Void)? = nil
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
+                // The navigation bar is hidden, so the side-menu button lives here
+                if let onMenu {
+                    Button(action: onMenu) {
+                        CircleIcon(systemName: "line.3.horizontal")
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Menu")
+                    .padding(.bottom, 12)
+                }
+
                 header
                     .padding(.bottom, 20)
 

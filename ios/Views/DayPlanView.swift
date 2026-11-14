@@ -17,8 +17,17 @@ import SwiftUI
 
 struct DayPlanView: View {
     @Environment(TripStore.self) private var store
-    var place: String = "Reykjavík"
-    var tripName: String = "Iceland Ring Road"
+    var place: String
+    var tripName: String
+    // Opens the app's side menu; the ☰ button is hidden when nil (e.g. previews)
+    var onMenu: (() -> Void)?
+
+    init(place: String = "Reykjavík", tripName: String = "Iceland Ring Road",
+         onMenu: (() -> Void)? = nil) {
+        self.place = place
+        self.tripName = tripName
+        self.onMenu = onMenu
+    }
 
     @State private var selectedDay: Date?
     @State private var plan: PlanTab = .main
@@ -92,7 +101,15 @@ struct DayPlanView: View {
     // MARK: - Header
 
     private var navRow: some View {
-        HStack {
+        HStack(spacing: 10) {
+            // The header hides the navigation bar, so the side-menu button lives here
+            if let onMenu {
+                Button(action: onMenu) {
+                    CircleIcon(systemName: "line.3.horizontal")
+                }
+                .accessibilityLabel("Menu")
+            }
+
             membersPill
 
             Spacer()

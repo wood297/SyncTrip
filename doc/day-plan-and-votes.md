@@ -35,13 +35,16 @@ activity model has no member or fork data yet.
 - Tapping Yes/No updates the counts on screen only. Nothing is saved or sent to
   the backend yet.
 
-## Not wired into navigation yet
+## Navigation
 
-`RootView` still shows `ItineraryView`. To try these screens in the app:
-
-- Day plan: replace `ItineraryView()` with `DayPlanView()` in `RootView.swift`.
-- Votes: add a `votes` case to `Page` in `RootView.swift` and a `MenuRow` in
-  `SideMenu.swift`.
+- The app opens on the Day plan: the `itinerary` page in `RootView.swift` now
+  shows `DayPlanView` instead of `ItineraryView`. `ItineraryView.swift` is kept
+  (unused) until the team decides to remove it.
+- Votes is a new `votes` page with a "Votes" row in `SideMenu.swift`.
+- Both screens hide the navigation bar to match the Figma header, which also
+  hides `RootView`'s ☰ toolbar button. They take an `onMenu` closure instead and
+  show their own ☰ button; `RootView` passes `{ showMenu = true }`. With no
+  closure (previews), the button is hidden.
 
 Each view also has an Xcode `#Preview`.
 

@@ -7,7 +7,7 @@
 import SwiftUI
 
 enum Page {
-    case itinerary, time
+    case itinerary, votes, time
 }
 
 struct RootView: View {
@@ -19,7 +19,10 @@ struct RootView: View {
             NavigationStack {
                 Group {
                     switch page {
-                    case .itinerary: ItineraryView()
+                    // Day plan and Votes hide the nav bar (Figma header), so they
+                    // show their own ☰ button and open the menu through onMenu
+                    case .itinerary: DayPlanView(onMenu: { showMenu = true })
+                    case .votes: VotesView(onMenu: { showMenu = true })
                     case .time: TimeView()
                     }
                 }
