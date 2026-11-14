@@ -21,8 +21,11 @@ an offline merge system or an authenticated public service.
 
 The form waits for confirmed persistence before dismissing. Failed saves preserve
 the draft; deletes change the visible list only after success. The app opens on
-the Day plan; a bottom menu bar (RootView + MenuBar, rules in Models/Page.swift)
-switches between Plan and Votes, with Trips/Map/Settings inactive. Day plan refresh
+Trips; a bottom menu bar (RootView + MenuBar, rules in Models/Page.swift)
+switches between Trips, Plan, and Votes, with Map/Settings inactive. Trips reads
+GET /api/v1/trips through TripListStore; tapping a trip calls TripStore.select,
+which switches the Day plan to that trip and ignores late results for the old
+one. SYNCTRIP_TRIP_ID is only the trip selected at launch. Day plan refresh
 has progress, a sync status, pull to refresh, a Refresh menu item, retry, and a
 legacy-data notice. ItineraryView and TimeView remain in the project but are not
 reachable from the menu bar. An old refresh
@@ -38,7 +41,7 @@ wired into online CRUD. Original location mappings are in the root README.
 Python tests use two Moto tables and the actual repository, including transactions,
 versions, isolation, pagination, custom names, and deletion recovery. HTTP verifiers
 exercise real server requests; live AWS checks use disposable records. Swift tests
-compile the actual Codable model, API client, store, and menu bar page model on
+compile the actual Codable models, API client, stores, and menu bar page model on
 macOS via Package.swift. SwiftUI views are not in the package; CI compiles them
 with an iOS Simulator build. Manual UI acceptance remains a Mac-only check.
 

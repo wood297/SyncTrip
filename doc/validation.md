@@ -32,6 +32,19 @@ Host: macOS, Swift 6.4.2, Xcode 27.2. Branch: feature/menu-bar.
 - Python and peer-sync suites were not re-run; this change touched only Swift
   files and docs.
 
+## Mac run: Trips page (November 14, 2026)
+
+Host: macOS, Swift 6.4.2, Xcode 27.2. Branch: feature/trips-page.
+
+- `swift test`: **24 passed**, zero failures (4 activity flow, 7 menu bar, 13
+  Trips tests). The Trips tests use a stubbed HTTP server, not a live backend.
+- iOS Simulator build of the "Senior Design - Exercise 3" target (no code signing):
+  BUILD SUCCEEDED, no errors.
+- Manual simulator acceptance, including opening trips against the demo or live
+  backend: NOT RUN.
+- Python and peer-sync suites were not re-run; this change touched only Swift
+  files and docs. The backend trip list endpoint is unchanged.
+
 Integration tests
 use two Moto tables and dummy AWS credentials, not the live account. They cover
 pagination, custom table names, invalid schemas, version conflicts, missing

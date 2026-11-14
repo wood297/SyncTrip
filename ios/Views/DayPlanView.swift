@@ -5,8 +5,8 @@
  that opens the add form at that time. On today's date a line marks the
  current time. Tapping an activity opens its detail page; + adds one.
 
- Uses the real activities from TripStore. Static for the prototype:
- - trip title ("Reykjavík") and trip name (passed in, not stored yet)
+ Uses the selected trip from TripStore: its destination as the title, its
+ name in the subtitle, and its real activities. Static for the prototype:
  - member avatars / chat button in the top-left pill
  - the Forks tab (forks are a later feature)
  - "N going" and the fork marker under an activity are not shown,
@@ -17,8 +17,10 @@ import SwiftUI
 
 struct DayPlanView: View {
     @Environment(TripStore.self) private var store
-    var place: String = "Reykjavík"
-    var tripName: String = "Iceland Ring Road"
+
+    // Selected trip's destination and name; the trip ID until the trip list loads
+    private var place: String { store.trip?.destination ?? "Day plan" }
+    private var tripName: String { store.trip?.name ?? store.tripID }
 
     @State private var selectedDay: Date?
     @State private var plan: PlanTab = .main

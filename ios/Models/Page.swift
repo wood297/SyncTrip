@@ -9,8 +9,8 @@ import Foundation
 enum Page: CaseIterable {
     case trips, plan, map, votes, settings
 
-    // Page shown when the app opens
-    static let start: Page = .plan
+    // Page shown when the app opens (Figma flow starts at 01 Trips)
+    static let start: Page = .trips
 
     var label: String {
         switch self {
@@ -36,8 +36,8 @@ enum Page: CaseIterable {
     // Pages without a screen yet stay inactive in the bar
     var isAvailable: Bool {
         switch self {
-        case .plan, .votes: true
-        case .trips, .map, .settings: false
+        case .trips, .plan, .votes: true
+        case .map, .settings: false
         }
     }
 
