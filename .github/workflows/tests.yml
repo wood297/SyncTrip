@@ -36,3 +36,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: swift test
+  # Compiles the whole iOS app (all views included) so Swift errors show up
+  # on the PR, even for teammates without a Mac. Does not run the app.
+  ios-build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use the newest Xcode on the runner (project needs Xcode 27 / iOS 27)
+        run: |
+          ls -d /Applications/Xcode*.app
+          XCODE=$(ls -d /Applications/Xcode_*.app | sort -t_ -k2 -V | tail -1)
+          sudo xcode-select -s "$XCODE"
+          xcodebuild -version
+      - name: Build for iOS Simulator (no code signing)
+        run: |
+          xcodebuild build \
+            -project ios/SyncTrip.xcodeproj \
+            -target "Senior Design - Exercise 3" \
+            -sdk iphonesimulator \
+            CODE_SIGNING_ALLOWED=NO

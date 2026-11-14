@@ -45,6 +45,15 @@ activity model has no member or fork data yet.
 
 Each view also has an Xcode `#Preview`.
 
+## Compile check in CI
+
+The `ios-build` job in `.github/workflows/tests.yml` builds the whole app for the
+iOS Simulator on a GitHub-hosted Mac (newest Xcode on the runner, no code signing).
+Compile errors in any view show up on the PR, so teammates without a Mac can check
+their Swift code. It does not run the app or check how screens look; use the Xcode
+previews on a Mac for that. If the runner has no Xcode new enough for iOS 27, the
+"Use the newest Xcode" step prints the installed versions.
+
 ## Differences from Figma
 
 - Icons use SF Symbols instead of the Figma glyph files.
