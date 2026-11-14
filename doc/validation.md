@@ -18,6 +18,19 @@ Date: November 10, 2026. Host: Windows, Python 3.12 in the project-local .venv.
 - Swift tests and Xcode/simulator acceptance: NOT RUN. Swift/Xcode is unavailable
   on this Windows host. Added model/client/store tests and a macOS CI job; those
   are not evidence of a successful build until a Mac actually runs them.
+  (Run on a Mac on November 14, 2026; see below.)
+
+## Mac run: menu bar (November 14, 2026)
+
+Host: macOS, Swift 6.4.2, Xcode 27.2. Branch: feature/menu-bar.
+
+- `swift test`: **11 passed**, zero failures (4 activity flow tests, 7 menu bar
+  tests).
+- iOS Simulator build of the "Senior Design - Exercise 3" target (no code signing):
+  BUILD SUCCEEDED, no errors.
+- Manual simulator acceptance (activity-prototype.md steps 5 to 10): NOT RUN.
+- Python and peer-sync suites were not re-run; this change touched only Swift
+  files and docs.
 
 Integration tests
 use two Moto tables and dummy AWS credentials, not the live account. They cover

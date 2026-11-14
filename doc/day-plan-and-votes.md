@@ -35,16 +35,24 @@ activity model has no member or fork data yet.
 - Tapping Yes/No updates the counts on screen only. Nothing is saved or sent to
   the backend yet.
 
-## Navigation
+## Menu bar
 
-- The app opens on the Day plan: the `itinerary` page in `RootView.swift` now
-  shows `DayPlanView` instead of `ItineraryView`. `ItineraryView.swift` is kept
-  (unused) until the team decides to remove it.
-- Votes is a new `votes` page with a "Votes" row in `SideMenu.swift`.
-- Both screens hide the navigation bar to match the Figma header, which also
-  hides `RootView`'s ☰ toolbar button. They take an `onMenu` closure instead and
-  show their own ☰ button; `RootView` passes `{ showMenu = true }`. With no
-  closure (previews), the button is hidden.
+The hamburger side menu is replaced by the bottom menu bar from the Figma frames
+(`ios/Views/MenuBar.swift`): Trips, Plan, Map, Votes, Settings. `RootView` shows
+the selected page above the bar and opens on Plan.
+
+- Plan opens `DayPlanView`; Votes opens `VotesView`.
+- Trips, Map, and Settings are shown but disabled until they have screens
+  (`Page.isAvailable`). Tapping them does not change the page.
+- Item order, labels, icons, the starting page, and selection rules are in
+  `ios/Models/Page.swift` (no SwiftUI), so `swift test` covers them in
+  `tests/swift/MenuBarTests.swift`. The bar's look is checked with its `#Preview`.
+- The bar stays visible on screens opened from a page (such as activity
+  details). Sheets such as the add/edit form cover it.
+- Each page has its own `NavigationStack`, so switching pages returns that page
+  to its top screen.
+- `ItineraryView` and `TimeView` are kept in the project but are no longer
+  reachable from the app.
 
 Each view also has an Xcode `#Preview`.
 

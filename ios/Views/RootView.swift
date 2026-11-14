@@ -1,45 +1,24 @@
 /*
  Root view
- One NavigationStack for the whole app. The side menu switches which page
- is shown instead of pushing a new screen, so screens no longer pile up.
+ Shows the selected page above the bottom menu bar. Each page gets its own
+ NavigationStack, so switching pages starts that page at its top screen.
  */
 
 import SwiftUI
 
-enum Page {
-    case itinerary, votes, time
-}
-
 struct RootView: View {
-    @State private var page: Page = .itinerary
-    @State private var showMenu = false
+    @State private var page: Page = .start
 
     var body: some View {
-        ZStack {
-            NavigationStack {
-                Group {
-                    switch page {
-                    // Day plan and Votes hide the nav bar (Figma header), so they
-                    // show their own ☰ button and open the menu through onMenu
-                    case .itinerary: DayPlanView(onMenu: { showMenu = true })
-                    case .votes: VotesView(onMenu: { showMenu = true })
-                    case .time: TimeView()
-                    }
-                }
-                .toolbar {
-                    // Hamburger button
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button {
-                            showMenu = true
-                        } label: {
-                            Image(systemName: "line.3.horizontal")
-                        }
-                        .accessibilityLabel("Menu")
-                    }
-                }
+        Group {
+            switch page {
+            case .votes: NavigationStack { VotesView() }
+            // Trips, Map, and Settings are disabled in the bar until they have screens
+            case .plan, .trips, .map, .settings: NavigationStack { DayPlanView() }
             }
-
-            SideMenu(isShowing: $showMenu, page: $page)
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            MenuBar(page: $page)
         }
     }
 }

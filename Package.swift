@@ -9,7 +9,8 @@ let package = Package(
     targets: [
         .target(name: "SyncTripCore", path: "ios",
                 exclude: ["App", "Views", "Resources", "SyncTrip.xcodeproj"],
-                sources: ["Models/Activity.swift", "Services/ActivityAPI.swift", "ViewModels/TripStore.swift"]),
+                sources: ["Models/Activity.swift", "Models/Page.swift",
+                          "Services/ActivityAPI.swift", "ViewModels/TripStore.swift"]),
         .testTarget(name: "SyncTripCoreTests", dependencies: ["SyncTripCore"], path: "tests/swift")
     ],
     swiftLanguageModes: [.v5]
