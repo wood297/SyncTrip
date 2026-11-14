@@ -31,6 +31,9 @@ struct SideMenu: View {
                     MenuRow(label: "Itinerary", icon: "calendar", selected: page == .itinerary) {
                         select(.itinerary)
                     }
+                    MenuRow(label: "Votes", icon: "checkmark.square", selected: page == .votes) {
+                        select(.votes)
+                    }
                     MenuRow(label: "Time", icon: "clock.fill", selected: page == .time) {
                         select(.time)
                     }
