@@ -1,0 +1,10 @@
+{
+  "name": "trip-sync",
+  "version": "1.0.0",
+  "description": "Offline-first peer-to-peer sync for a shared travel plan",
+  "type": "module",
+  "scripts": {
+    "start": "node src/cli.js",
+    "test": "node --test ../../../../tests/sync/*.test.js"
+  }
+}
