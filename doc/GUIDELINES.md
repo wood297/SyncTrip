@@ -53,7 +53,15 @@ We organize the API into route modules using `APIRouter` and register them in th
 
 ## 2. Branching and Workflow
 
-`main` holds the shared, reviewed prototype. Each teammate starts from the latest `main` and creates a branch in the shared repository without making a personal fork. Use lowercase names with hyphens, such as `feature/activity-form` for new work, `bugfixes/day-plan-full-screen-form` for fixes, `docs/demo-trip-configuration` for documentation, and `integration/activity-flow` when related changes need to be tested together. Develop and test on your branch, then push it and open a pull request into `main` or an agreed integration branch. [GitHub Flow](https://docs.github.com/en/get-started/using-github/github-flow)
+| Branch | Purpose | Example |
+| --- | --- | --- |
+| `main` | Shared, reviewed prototype | `main` |
+| `feature/<name>` | New functionality | `feature/activity-form` |
+| `bugfixes/<name>` | Fixes to existing behavior | `bugfixes/day-plan-full-screen-form` |
+| `docs/<name>` | Documentation updates | `docs/demo-trip-configuration` |
+| `integration/<name>` | Test related changes together | `integration/activity-flow` |
+
+Each teammate starts from the latest `main` and creates a branch in the shared repository. Use lowercase words separated by hyphens and keep all work in the team repository instead of personal forks. Develop and test on your branch, then push it and open a pull request into `main` or an agreed integration branch. [GitHub Flow](https://docs.github.com/en/get-started/using-github/github-flow)
 
 ## 3. Code Development and Review Policy
 
