@@ -76,7 +76,7 @@ struct DayPlanView: View {
         .navigationDestination(for: UUID.self) { id in
             ActivityDetailView(activityID: id)
         }
-        .sheet(item: $draft) { activity in
+        .fullScreenCover(item: $draft) { activity in
             ActivityFormView(activity: activity, isNew: true) {
                 try await store.save($0, isNew: true)
             }
