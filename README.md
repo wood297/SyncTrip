@@ -66,7 +66,13 @@ Stop the live server first if using the same port. Then run:
 
 This uses two emulated DynamoDB tables, seeds demo-trip and one activity, and never
 contacts live AWS. Open /docs or run the full verifier in the other terminal.
-Stopping the demo erases its data; restarting just the app does not. For the older
+Stopping the demo erases its data; restarting just the app does not.
+
+When running the iOS app against the demo, enable `SYNCTRIP_TRIP_ID=demo-trip`
+in the active Xcode Run scheme and relaunch the app. Without that setting, the
+app defaults to `trip001`, which returns HTTP 404 on the demo backend.
+
+For the older
 activity-only checker: `python scripts/verify_activity_flow.py --trip-id demo-trip --allow-writes`.
 
 ## API contract for teammates
