@@ -1,6 +1,7 @@
 /*
  Activity model
- One itinerary item. Each preset type has its own set of detail fields.
+ One itinerary item. Every activity has a name, time and place ("Where");
+ each preset type (template) adds a few fields of its own.
  */
 
 import Foundation
@@ -14,31 +15,31 @@ enum ActivityType: String, Codable, CaseIterable, Identifiable {
         switch self {
         case .flight: "Flight"
         case .food: "Food"
-        case .transport: "Transport"
+        case .transport: "Transit"
         case .hotel: "Hotel"
         case .custom: "Custom"
         }
     }
 
-    // SF Symbol name
+    // SF Symbol name (outline glyphs, as in the Figma type tiles)
     var icon: String {
         switch self {
         case .flight: "airplane"
         case .food: "fork.knife"
-        case .transport: "car.fill"
-        case .hotel: "bed.double.fill"
-        case .custom: "star.fill"
+        case .transport: "bus"
+        case .hotel: "bed.double"
+        case .custom: "star"
         }
     }
 
-    // Extra fields shown in the form for this type
+    // Template fields shown in the form for this type, besides Name and Where
     var fields: [String] {
         switch self {
-        case .flight: ["Flight number", "From", "To"]
-        case .food: ["Restaurant", "Address", "Reservation name"]
-        case .transport: ["Mode", "Pickup", "Drop-off"]
-        case .hotel: ["Hotel", "Address", "Confirmation number"]
-        case .custom: ["Location"]
+        case .flight: ["Flight number", "To"]
+        case .food: ["Reservation name"]
+        case .transport: ["Mode", "Drop-off"]
+        case .hotel: ["Confirmation number"]
+        case .custom: []
         }
     }
 }
@@ -50,8 +51,16 @@ struct Activity: Identifiable, Codable {
     var title: String
     var start: Date
     var end: Date
-    var details: [String: String] = [:]   // keyed by type.fields
+    var details: [String: String] = [:]   // keyed by type.fields and locationKey
     var notes: String = ""
+
+    static let locationKey = "Location"
+
+    // Where the activity happens. Stored in details so the API stays the same.
+    var location: String {
+        get { details[Self.locationKey, default: ""] }
+        set { details[Self.locationKey] = newValue }
+    }
 
     // e.g. "1h 30m"
     var durationText: String {
@@ -84,9 +93,9 @@ struct Activity: Identifiable, Codable {
         }
         return [
             Activity(type: .flight, title: "Flight to Chicago", start: at(day1, 8), end: at(day1, 9, 15),
-                     details: ["Flight number": "UA 1234", "From": "IND", "To": "ORD"]),
+                     details: ["Flight number": "UA 1234", "Location": "IND", "To": "ORD"]),
             Activity(type: .hotel, title: "Hotel check-in", start: at(day1, 11), end: at(day1, 11, 30),
-                     details: ["Hotel": "Downtown Hotel"]),
+                     details: ["Location": "Downtown Hotel"]),
             Activity(type: .food, title: "Deep-dish lunch", start: at(day1, 12, 30), end: at(day1, 14)),
             Activity(type: .custom, title: "Architecture boat tour", start: at(day2, 10), end: at(day2, 11, 30),
                      details: ["Location": "Riverwalk"]),

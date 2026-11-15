@@ -27,8 +27,11 @@ struct ActivityDetailView: View {
                 }
 
                 let filled = activity.type.fields.filter { !(activity.details[$0] ?? "").isEmpty }
-                if !filled.isEmpty {
+                if !activity.location.isEmpty || !filled.isEmpty {
                     Section("Details") {
+                        if !activity.location.isEmpty {
+                            LabeledContent("Where", value: activity.location)
+                        }
                         ForEach(filled, id: \.self) { field in
                             LabeledContent(field, value: activity.details[field] ?? "")
                         }
@@ -53,9 +56,11 @@ struct ActivityDetailView: View {
                 Button("Edit") { showEdit = true }
                     .disabled(isDeleting)
             }
-            .sheet(isPresented: $showEdit) {
+            .fullScreenCover(isPresented: $showEdit) {
                 ActivityFormView(activity: activity, isNew: false) {
                     try await store.save($0, isNew: false)
+                } onDelete: {
+                    try await store.delete(id: activityID)
                 }
             }
             .alert("Couldn’t delete activity", isPresented: Binding(
@@ -78,7 +83,9 @@ struct ActivityDetailView: View {
                 }
             }
         } else {
+            // Shown briefly after the activity is deleted from the edit form
             ContentUnavailableView("Activity not found", systemImage: "questionmark.circle")
+                .onAppear { dismiss() }
         }
     }
 }

@@ -78,7 +78,7 @@ struct ItineraryView: View {
                 .disabled(!store.hasLoaded || store.isLoading)
             }
         }
-        .sheet(isPresented: $showAdd) {
+        .fullScreenCover(isPresented: $showAdd) {
             ActivityFormView(activity: .blank(), isNew: true) {
                 try await store.save($0, isNew: true)
             }
