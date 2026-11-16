@@ -65,6 +65,31 @@ private struct MenuBarButtonStyle: ButtonStyle {
     }
 }
 
+// MARK: - Hiding the bar on detail pages
+
+extension EnvironmentValues {
+    // RootView hides the bar while this is true (see hidesMenuBar())
+    @Entry var menuBarHidden: Binding<Bool> = .constant(false)
+}
+
+extension View {
+    // Hides the menu bar while this page is on screen, the way iOS hides
+    // a tab bar on pushed detail pages (Figma 06 has no bar)
+    func hidesMenuBar() -> some View {
+        modifier(HidesMenuBar())
+    }
+}
+
+private struct HidesMenuBar: ViewModifier {
+    @Environment(\.menuBarHidden) private var hidden
+
+    func body(content: Content) -> some View {
+        content
+            .onAppear { hidden.wrappedValue = true }
+            .onDisappear { hidden.wrappedValue = false }
+    }
+}
+
 #Preview {
     @Previewable @State var page: Page = .plan
     VStack {

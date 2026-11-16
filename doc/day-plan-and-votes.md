@@ -51,8 +51,9 @@ the selected page above the bar and opens on Trips.
 - Item order, labels, icons, the starting page, and selection rules are in
   `ios/Models/Page.swift` (no SwiftUI), so `swift test` covers them in
   `tests/swift/MenuBarTests.swift`. The bar's look is checked with its `#Preview`.
-- The bar stays visible on screens opened from a page (such as activity
-  details). Sheets such as the add/edit form cover it.
+- The bar hides on activity details, as in Figma 06, and comes back on Back.
+  A page opts in with `.hidesMenuBar()` (in `MenuBar.swift`). Full-screen forms
+  such as add/edit cover it.
 - Each page has its own `NavigationStack`, so switching pages returns that page
   to its top screen.
 - `ItineraryView` and `TimeView` are kept in the project but are no longer
