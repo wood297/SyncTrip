@@ -112,10 +112,16 @@ and OS firewall; use HTTPS for hosted/device access. The app's local-network
 permission must be granted. Do not expose this prototype on the public internet
 without adding authentication and trip membership authorization.
 
-**Not yet executed here:** Swift tests and the Xcode/simulator checks, because this
-workspace is Windows without Swift/Xcode. CI includes a macOS Swift test job, but
-its presence does not mean it has passed. Existing Xcode deployment targets were
-preserved (iOS 27.0); the Mac needs a compatible Xcode/simulator.
+**Run on a Mac (November 14, 2026):** `swift test` passed and the app built for the
+iOS Simulator (Xcode 27.2). The manual simulator checklist has not been run yet.
+Existing Xcode deployment targets were preserved (iOS 27.0); the Mac needs a
+compatible Xcode/simulator. Details are in [doc/validation.md](doc/validation.md).
+
+The app opens on Trips, which lists real trips from the API; tapping one opens its
+Day plan. A bottom menu bar switches between Trips, Plan, and Votes; Map and
+Settings are shown but inactive. SYNCTRIP_TRIP_ID only picks the trip selected at
+launch. See [doc/trips.md](doc/trips.md) and
+[doc/day-plan-and-votes.md](doc/day-plan-and-votes.md).
 
 ## Repository and original code locations
 
@@ -143,7 +149,7 @@ npm test
 
 Python tests use Moto and dummy credentials, never live AWS. Node 22+ is needed
 for the dependency-free sync tests. `swift test` runs the shared client/store/model
-suite on macOS. CI runs these suites on pushes and PRs. Results and the latest
+suite, the Trips data and trip switching, and the menu bar page rules on macOS. CI runs these suites on pushes and PRs. Results and the latest
 live verification are recorded in [doc/validation.md](doc/validation.md).
 
 This is an online prototype: no authentication, offline queue, or CRDT merge is

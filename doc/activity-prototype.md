@@ -40,7 +40,8 @@ verify_api.py --trip-id trip001 is the read-only alternative.
 1. Use the PR/feature branch containing the two-table implementation. Set up the
    local Python environment from README, or use a reachable running backend.
 2. With Swift 6+, run `swift test` from the repo root. The tests compile the actual
-   Swift model, URLSession client, and observable store without a simulator.
+   Swift model, URLSession client, observable stores, trip model, and menu bar page model
+   without a simulator.
 3. Open ios/SyncTrip.xcodeproj in a compatible Xcode. Existing deployment targets
    are preserved (iOS 27.0); select an appropriate iOS simulator.
 4. Product > Scheme > Edit Scheme > Run > Arguments > Environment Variables:
@@ -49,12 +50,18 @@ verify_api.py --trip-id trip001 is the read-only alternative.
    - SYNCTRIP_TRIP_ID: demo-trip for the demo; trip001/trip002/trip003/trip4 for
      existing AWS trips; or an ID created through POST /api/v1/trips.
    These are configuration values, not AWS credentials or source edits.
-5. Build and launch. Verify loading and the seeded activity in demo mode. With
-   live AWS, an empty activities list is valid for a trip with no saved activities.
-6. Tap +. The full-screen New activity form (Figma 03) opens with the next hour as
-   its time. Pick a type tile, enter a Name, optionally Where/Notes, then Review.
-   Review stays on "Saving…" until success, then dismisses and shows the activity.
-   (Review saves directly until the 05 Review & save screen is built.)
+5. Build and launch. The app opens on Trips. In demo mode "SyncTrip verification
+   demo" is listed under Upcoming; with live AWS every trip is listed by status.
+   Tap the trip to open its Day plan. Verify loading and the seeded activity in
+   demo mode (pick its day in the day strip if needed). With live AWS, an empty
+   activities list is valid for a trip with no saved activities. Go back to
+   Trips, open a different trip, and confirm the Day plan shows only that trip's
+   activities. In the bottom menu bar, Trips, Plan, and Votes should switch
+   pages; Map and Settings should do nothing.
+6. On the Day plan, tap +. The full-screen New activity form (Figma 03) opens with
+   the next hour as its time. Pick a type tile, enter a Name, optionally Where/Notes,
+   then Review. Review stays on "Saving…" until success, then dismisses and shows
+   the activity. (Review saves directly until the 05 Review & save screen is built.)
 7. Relaunch the app without restarting the backend. The activity should reload.
    Confirm it also exists through GET activities in /docs.
 8. Open it, tap Edit (Figma 07), change the time, and check the new times show in
@@ -66,7 +73,7 @@ verify_api.py --trip-id trip001 is the read-only alternative.
    request followed by a lost response does not create duplicates on retry.
 10. For a stale-edit check, edit one activity through /docs after opening it in the
     app. Saving the old form should fail with a conflict. Close it, refresh the
-    itinerary, and reopen the latest activity before reapplying edits.
+    Day plan (pull down, or ••• > Refresh), and reopen the latest activity before reapplying edits.
 
 The simulator's localhost refers to its Mac, not the Windows host. For a backend
 on another machine, bind uvicorn to 0.0.0.0 on a trusted private network, configure

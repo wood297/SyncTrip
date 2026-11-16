@@ -1,45 +1,39 @@
 /*
  Root view
- One NavigationStack for the whole app. The side menu switches which page
- is shown instead of pushing a new screen, so screens no longer pile up.
+ Shows the selected page above the bottom menu bar. Each page gets its own
+ NavigationStack, so switching pages starts that page at its top screen.
+ Tapping a trip on the Trips page selects it and opens its Day plan.
  */
 
 import SwiftUI
 
-enum Page {
-    case itinerary, votes, time
-}
-
 struct RootView: View {
-    @State private var page: Page = .itinerary
-    @State private var showMenu = false
+    @Environment(TripStore.self) private var store
+    @Environment(TripListStore.self) private var trips
+    @State private var page: Page = .start
 
     var body: some View {
-        ZStack {
-            NavigationStack {
-                Group {
-                    switch page {
-                    // Day plan and Votes hide the nav bar (Figma header), so they
-                    // show their own ☰ button and open the menu through onMenu
-                    case .itinerary: DayPlanView(onMenu: { showMenu = true })
-                    case .votes: VotesView(onMenu: { showMenu = true })
-                    case .time: TimeView()
+        Group {
+            switch page {
+            case .trips:
+                NavigationStack {
+                    TripsView { trip in
+                        store.select(trip)
+                        page.select(.plan)
                     }
                 }
-                .toolbar {
-                    // Hamburger button
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button {
-                            showMenu = true
-                        } label: {
-                            Image(systemName: "line.3.horizontal")
-                        }
-                        .accessibilityLabel("Menu")
-                    }
-                }
+            case .votes: NavigationStack { VotesView() }
+            // Map and Settings are disabled in the bar until they have screens
+            case .plan, .map, .settings: NavigationStack { DayPlanView() }
             }
-
-            SideMenu(isShowing: $showMenu, page: $page)
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            MenuBar(page: $page)
+        }
+        // Name and destination for the selected trip (set at launch by SYNCTRIP_TRIP_ID)
+        .task { if !trips.hasLoaded { await trips.refresh() } }
+        .onChange(of: trips.trips, initial: true) { _, list in
+            store.useDetails(from: list)
         }
     }
 }
@@ -47,4 +41,6 @@ struct RootView: View {
 #Preview {
     RootView()
         .environment(TripStore(previewActivities: Activity.samples))
+        .environment(TripListStore(previewTrips: Trip.samples,
+                                   nowActivities: ["iceland": Activity.samples]))
 }
