@@ -11,6 +11,7 @@ struct RootView: View {
     @Environment(TripStore.self) private var store
     @Environment(TripListStore.self) private var trips
     @State private var page: Page = .start
+    @State private var menuBarHidden = false   // set by detail pages, see hidesMenuBar()
 
     var body: some View {
         Group {
@@ -27,8 +28,11 @@ struct RootView: View {
             case .plan, .map, .settings: NavigationStack { DayPlanView() }
             }
         }
+        .environment(\.menuBarHidden, $menuBarHidden)
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            MenuBar(page: $page)
+            if !menuBarHidden {
+                MenuBar(page: $page)
+            }
         }
         // Name and destination for the selected trip (set at launch by SYNCTRIP_TRIP_ID)
         .task { if !trips.hasLoaded { await trips.refresh() } }

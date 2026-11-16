@@ -342,13 +342,7 @@ struct ActivityFormView: View {
 
     // e.g. "Sat, Jun 13 · 2:00 – 4:00 PM"
     private var timeSlotText: String {
-        let calendar = Calendar.current
-        if calendar.isDate(draft.start, inSameDayAs: draft.end) {
-            let day = draft.start.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day())
-            return "\(day) · \(Self.timeRange(draft.start, draft.end))"
-        }
-        return (draft.start..<max(draft.end, draft.start))
-            .formatted(.interval.weekday(.abbreviated).month(.abbreviated).day().hour().minute())
+        Activity.slotText(from: draft.start, to: draft.end)
     }
 
     // Time only, plus the date if it moved to another day
@@ -362,7 +356,7 @@ struct ActivityFormView: View {
     // e.g. "Moved 30 min later (was 12:30 – 1:30 PM)"
     private var timeChangeNote: String? {
         guard differs(draft.start, original.start) || differs(draft.end, original.end) else { return nil }
-        let was = Self.timeRange(original.start, original.end)
+        let was = Activity.compactRange(from: original.start, to: original.end)
         let shift = draft.start.timeIntervalSince(original.start)
         let sameLength = !differs(draft.end.addingTimeInterval(-shift), original.end)
         if sameLength {
@@ -376,17 +370,6 @@ struct ActivityFormView: View {
     // Ignores differences under a minute
     private func differs(_ a: Date, _ b: Date) -> Bool {
         abs(a.timeIntervalSince(b)) >= 60
-    }
-
-    // e.g. "2:00 – 4:00 PM"; AM/PM is shown once when both times share it
-    private static func timeRange(_ start: Date, _ end: Date) -> String {
-        let calendar = Calendar.current
-        let samePeriod = calendar.isDate(start, inSameDayAs: end)
-            && (calendar.component(.hour, from: start) < 12) == (calendar.component(.hour, from: end) < 12)
-        let startText = samePeriod
-            ? start.formatted(.dateTime.hour(.defaultDigits(amPM: .omitted)).minute())
-            : start.formatted(date: .omitted, time: .shortened)
-        return "\(startText) – \(end.formatted(date: .omitted, time: .shortened))"
     }
 
     private enum Field: Hashable {

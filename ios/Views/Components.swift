@@ -1,6 +1,6 @@
 /*
  Shared rows, text buttons and text styles for form-style screens
- (Figma 03 Add activity, 07 Edit activity, 05 Review & save).
+ (Figma 03 Add activity, 06 Activity details, 07 Edit activity, 05 Review & save).
  Colours, cards, pill buttons and caps labels are in Theme.swift.
  */
 
@@ -13,6 +13,7 @@ extension Theme {
 
 // Text styles from the Figma file, set in the system font
 extension Font {
+    static let titleLarge = Font.system(size: 30, weight: .bold)   // use with .tracking(-0.6)
     static let navTitle = Font.system(size: 17, weight: .semibold)
     static let buttonLabel = Font.system(size: 17, weight: .semibold)
     static let bodyEmphasis = Font.system(size: 16, weight: .semibold)

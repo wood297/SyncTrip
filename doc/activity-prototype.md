@@ -64,10 +64,13 @@ verify_api.py --trip-id trip001 is the read-only alternative.
    the activity. (Review saves directly until the 05 Review & save screen is built.)
 7. Relaunch the app without restarting the backend. The activity should reload.
    Confirm it also exists through GET activities in /docs.
-8. Open it, tap Edit (Figma 07), change the time, and check the new times show in
-   amber with a "Moved … (was …)" note. Review, relaunch, and confirm the edit.
-   Then Edit → Delete activity → Delete; it disappears from the UI and from GET
-   activities, and only the selected activity is removed.
+8. Open it. Activity details (Figma 06) shows its type, name, time, a map of
+   Where (the map needs internet), template fields and notes, with no menu bar;
+   Open in Maps opens Apple Maps. Tap Edit activity (Figma 07), change the time,
+   and check the new times show in amber with a "Moved … (was …)" note. Review,
+   relaunch, and confirm the edit. Then ••• → Delete activity → Delete (or Edit →
+   Delete activity); it disappears from the UI and from GET activities, and only
+   the selected activity is removed.
 9. Open a draft and stop the server before Review. An error should keep the form
    and draft open. Restart and retry. Creation uses a stable UUID, so a successful
    request followed by a lost response does not create duplicates on retry.
