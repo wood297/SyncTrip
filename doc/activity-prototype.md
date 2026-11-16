@@ -51,7 +51,8 @@ verify_api.py --trip-id trip001 is the read-only alternative.
      existing AWS trips; or an ID created through POST /api/v1/trips.
    These are configuration values, not AWS credentials or source edits.
 5. Build and launch. The app opens on Trips. In demo mode "SyncTrip verification
-   demo" is listed under Upcoming; with live AWS every trip is listed by status.
+   demo" starts 11-14-2026, so it is listed under Now once that date has passed
+   (Upcoming before it); with live AWS every trip is listed by status and start date.
    Tap the trip to open its Day plan. Verify loading and the seeded activity in
    demo mode (pick its day in the day strip if needed). With live AWS, an empty
    activities list is valid for a trip with no saved activities. Go back to

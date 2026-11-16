@@ -90,14 +90,34 @@ final class TripsTests: XCTestCase {
         XCTAssertEqual(trip("t", status: "planning", start: "Spring break").startText(), "Spring break")
     }
 
+    // Fixed "today" so the date-based tests don't change as time passes
+    private let today = Calendar.current.date(from: DateComponents(year: 2026, month: 11, day: 16, hour: 12))!
+
     func testStatusPicksSection() {
-        XCTAssertEqual(trip("a", status: "active").section, .now)
-        XCTAssertEqual(trip("b", status: "planning").section, .upcoming)
-        XCTAssertEqual(trip("c", status: "completed").section, .past)
-        XCTAssertEqual(trip("d", status: "cancelled").section, .past)
-        XCTAssertEqual(trip("e", status: "Active").section, .now)
-        XCTAssertEqual(trip("f", status: "something-new").section, .upcoming,
-                       "Unknown statuses should still be listed")
+        // Start date 2026-12-01 is after today, so only the status decides
+        func section(_ status: String) -> TripSection {
+            trip("t", status: status, start: "2026-12-01").section(now: today)
+        }
+        XCTAssertEqual(section("active"), .now)
+        XCTAssertEqual(section("planning"), .upcoming)
+        XCTAssertEqual(section("completed"), .past)
+        XCTAssertEqual(section("cancelled"), .past)
+        XCTAssertEqual(section("Active"), .now)
+        XCTAssertEqual(section("something-new"), .upcoming, "Unknown statuses should still be listed")
+    }
+
+    func testStartedPlanningTripIsNow() {
+        XCTAssertEqual(trip("started", status: "planning", start: "11-14-2026").section(now: today), .now,
+                       "A planning trip whose start date has passed is happening now")
+        XCTAssertEqual(trip("today", status: "planning", start: "2026-11-16").section(now: today), .now,
+                       "A trip starting today is happening now")
+        XCTAssertEqual(trip("tomorrow", status: "planning", start: "2026-11-17").section(now: today), .upcoming)
+        XCTAssertEqual(trip("undated", status: "planning", start: "TBD").section(now: today), .upcoming,
+                       "Without a readable date the trip stays Upcoming")
+        XCTAssertEqual(trip("done", status: "completed", start: "2026-12-01").section(now: today), .past,
+                       "Completed trips are Past whatever the date")
+        XCTAssertEqual(trip("early", status: "active", start: "2026-12-01").section(now: today), .now,
+                       "Active trips are Now whatever the date")
     }
 
     func testSectionsAreOrderedByDate() {
@@ -108,13 +128,13 @@ final class TripsTests: XCTestCase {
             trip("old", status: "completed", start: "2025-01-01"),
             trip("recent", status: "cancelled", start: "2026-10-01"),
             trip("now", status: "active"),
-        ])
+        ], now: today)
         XCTAssertEqual(sections.now.map(\.id), ["now"])
         XCTAssertEqual(sections.upcoming.map(\.id), ["soon", "late", "undated"],
                        "Soonest first; unreadable dates last")
         XCTAssertEqual(sections.past.map(\.id), ["recent", "old"], "Most recent first")
         XCTAssertFalse(sections.isEmpty)
-        XCTAssertTrue(TripSections(trips: []).isEmpty)
+        XCTAssertTrue(TripSections(trips: [], now: today).isEmpty)
     }
 
     // MARK: - Now card
@@ -163,7 +183,7 @@ final class TripsTests: XCTestCase {
                     ["trip_id": "now-trip", "name": "Now", "destination": "Reykjavík",
                      "start_date": "2026-11-14", "status": "active"],
                     ["trip_id": "later", "name": "Later", "destination": "Austin",
-                     "start_date": "2027-01-01", "status": "planning"],
+                     "start_date": "2099-01-01", "status": "planning"],
                 ]]))
             case "/api/v1/trips/now-trip/activities":
                 return (200, try self.json(["activities": [
