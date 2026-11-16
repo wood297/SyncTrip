@@ -40,7 +40,7 @@ verify_api.py --trip-id trip001 is the read-only alternative.
 1. Use the PR/feature branch containing the two-table implementation. Set up the
    local Python environment from README, or use a reachable running backend.
 2. With Swift 6+, run `swift test` from the repo root. The tests compile the actual
-   Swift model, URLSession client, observable store, and menu bar page model
+   Swift model, URLSession client, observable stores, trip model, and menu bar page model
    without a simulator.
 3. Open ios/SyncTrip.xcodeproj in a compatible Xcode. Existing deployment targets
    are preserved (iOS 27.0); select an appropriate iOS simulator.
@@ -50,11 +50,14 @@ verify_api.py --trip-id trip001 is the read-only alternative.
    - SYNCTRIP_TRIP_ID: demo-trip for the demo; trip001/trip002/trip003/trip4 for
      existing AWS trips; or an ID created through POST /api/v1/trips.
    These are configuration values, not AWS credentials or source edits.
-5. Build and launch. The app opens on the Day plan. Verify loading and the seeded
-   activity in demo mode (pick its day in the day strip if needed). With live AWS,
-   an empty activities list is valid for a trip with no saved activities.
-   In the bottom menu bar, Votes and Plan should switch pages; Trips, Map, and
-   Settings should do nothing.
+5. Build and launch. The app opens on Trips. In demo mode "SyncTrip verification
+   demo" is listed under Upcoming; with live AWS every trip is listed by status.
+   Tap the trip to open its Day plan. Verify loading and the seeded activity in
+   demo mode (pick its day in the day strip if needed). With live AWS, an empty
+   activities list is valid for a trip with no saved activities. Go back to
+   Trips, open a different trip, and confirm the Day plan shows only that trip's
+   activities. In the bottom menu bar, Trips, Plan, and Votes should switch
+   pages; Map and Settings should do nothing.
 6. On the Day plan, tap +, fill type/title/times/details/notes, then Save. Save should stay pending
    until success, then dismiss and display the returned activity.
 7. Relaunch the app without restarting the backend. The activity should reload.

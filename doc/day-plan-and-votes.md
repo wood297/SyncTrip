@@ -24,7 +24,10 @@ Shared colors, card style, pill buttons, and avatars are in `ios/Views/Theme.swi
 - "Synced" / "Syncing" / "Not synced" reflects the store's loading and error state.
 - Reordering is done by changing an activity's time; there is no drag and drop.
 
-Static for now: the title ("Reykjavík") and trip name, member avatars and chat
+The title is the selected trip's destination and the subtitle its name (see
+[trips.md](trips.md) for how a trip is selected).
+
+Static for now: member avatars and chat
 button, the Forks tab, "N going", and the fork marker under an activity. The
 activity model has no member or fork data yet.
 
@@ -39,10 +42,11 @@ activity model has no member or fork data yet.
 
 The hamburger side menu is replaced by the bottom menu bar from the Figma frames
 (`ios/Views/MenuBar.swift`): Trips, Plan, Map, Votes, Settings. `RootView` shows
-the selected page above the bar and opens on Plan.
+the selected page above the bar and opens on Trips.
 
-- Plan opens `DayPlanView`; Votes opens `VotesView`.
-- Trips, Map, and Settings are shown but disabled until they have screens
+- Trips opens `TripsView` ([trips.md](trips.md)); Plan opens `DayPlanView`;
+  Votes opens `VotesView`. Tapping a trip opens its Day plan.
+- Map and Settings are shown but disabled until they have screens
   (`Page.isAvailable`). Tapping them does not change the page.
 - Item order, labels, icons, the starting page, and selection rules are in
   `ios/Models/Page.swift` (no SwiftUI), so `swift test` covers them in

@@ -117,8 +117,10 @@ iOS Simulator (Xcode 27.2). The manual simulator checklist has not been run yet.
 Existing Xcode deployment targets were preserved (iOS 27.0); the Mac needs a
 compatible Xcode/simulator. Details are in [doc/validation.md](doc/validation.md).
 
-The app opens on the Day plan. A bottom menu bar switches between Plan and Votes;
-Trips, Map, and Settings are shown but inactive. See
+The app opens on Trips, which lists real trips from the API; tapping one opens its
+Day plan. A bottom menu bar switches between Trips, Plan, and Votes; Map and
+Settings are shown but inactive. SYNCTRIP_TRIP_ID only picks the trip selected at
+launch. See [doc/trips.md](doc/trips.md) and
 [doc/day-plan-and-votes.md](doc/day-plan-and-votes.md).
 
 ## Repository and original code locations
@@ -147,7 +149,7 @@ npm test
 
 Python tests use Moto and dummy credentials, never live AWS. Node 22+ is needed
 for the dependency-free sync tests. `swift test` runs the shared client/store/model
-suite and the menu bar page rules on macOS. CI runs these suites on pushes and PRs. Results and the latest
+suite, the Trips data and trip switching, and the menu bar page rules on macOS. CI runs these suites on pushes and PRs. Results and the latest
 live verification are recorded in [doc/validation.md](doc/validation.md).
 
 This is an online prototype: no authentication, offline queue, or CRDT merge is

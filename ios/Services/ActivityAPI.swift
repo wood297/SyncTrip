@@ -10,6 +10,10 @@ struct ActivityListResponse: Decodable {
     }
 }
 
+struct TripListResponse: Decodable {
+    let trips: [Trip]
+}
+
 struct ActivityAPIError: LocalizedError {
     let message: String
     var errorDescription: String? { message }
@@ -28,6 +32,12 @@ final class ActivityAPI {
     static func configured() -> ActivityAPI {
         let address = ProcessInfo.processInfo.environment["SYNCTRIP_API_URL"] ?? "http://localhost:8000"
         return ActivityAPI(baseURL: URL(string: address))
+    }
+
+    // Trip metadata only (no activities), for the Trips page
+    func listTrips() async throws -> [Trip] {
+        let data = try await request(path: [], method: "GET", expected: 200)
+        return try decoder().decode(TripListResponse.self, from: data).trips
     }
 
     func list(tripID: String) async throws -> ActivityListResponse {
@@ -50,15 +60,24 @@ final class ActivityAPI {
         _ = try await request(tripID: tripID, activityID: id, method: "DELETE", expected: 204)
     }
 
+    // Activity requests: /api/v1/trips/{tripID}/activities[/{activityID}]
     private func request(tripID: String, activityID: UUID? = nil, method: String,
+                         body: Data? = nil, expected: Int) async throws -> Data {
+        var path = [tripID, "activities"]
+        if let activityID { path.append(activityID.uuidString.lowercased()) }
+        return try await request(path: path, method: method, body: body, expected: expected)
+    }
+
+    // Any request under /api/v1/trips
+    private func request(path: [String], method: String,
                          body: Data? = nil, expected: Int) async throws -> Data {
         guard let baseURL,
               ["http", "https"].contains(baseURL.scheme?.lowercased() ?? ""), baseURL.host != nil else {
             throw ActivityAPIError(message: "Check the API URL in the Xcode scheme settings.")
         }
-        var url = baseURL.appendingPathComponent("api/v1/trips")
-            .appendingPathComponent(tripID).appendingPathComponent("activities")
-        if let activityID { url.appendPathComponent(activityID.uuidString.lowercased()) }
+        let url = path.reduce(baseURL.appendingPathComponent("api/v1/trips")) {
+            $0.appendingPathComponent($1)
+        }
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.httpBody = body

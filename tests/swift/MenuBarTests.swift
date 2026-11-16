@@ -12,21 +12,23 @@ final class MenuBarTests: XCTestCase {
         XCTAssertEqual(Page.allCases.map(\.label), ["Trips", "Plan", "Map", "Votes", "Settings"])
     }
 
-    func testOnlyPlanAndVotesAreActive() {
-        XCTAssertEqual(Page.allCases.filter(\.isAvailable), [.plan, .votes])
+    func testOnlyTripsPlanAndVotesAreActive() {
+        XCTAssertEqual(Page.allCases.filter(\.isAvailable), [.trips, .plan, .votes])
     }
 
-    func testAppOpensOnPlan() {
-        XCTAssertEqual(Page.start, .plan)
+    func testAppOpensOnTrips() {
+        XCTAssertEqual(Page.start, .trips)
         XCTAssertTrue(Page.start.isAvailable, "The app must not open on an inactive page")
     }
 
     func testSelectingActivePagesSwitches() {
         var page = Page.start
-        page.select(.votes)
-        XCTAssertEqual(page, .votes)
         page.select(.plan)
         XCTAssertEqual(page, .plan)
+        page.select(.votes)
+        XCTAssertEqual(page, .votes)
+        page.select(.trips)
+        XCTAssertEqual(page, .trips)
     }
 
     func testSelectingCurrentPageKeepsIt() {
@@ -36,8 +38,8 @@ final class MenuBarTests: XCTestCase {
     }
 
     func testSelectingInactivePagesDoesNothing() {
-        for current in [Page.plan, .votes] {
-            for inactive in [Page.trips, .map, .settings] {
+        for current in [Page.trips, .plan, .votes] {
+            for inactive in [Page.map, .settings] {
                 var page = current
                 page.select(inactive)
                 XCTAssertEqual(page, current, "Tapping \(inactive.label) on \(current.label) should not switch pages")
