@@ -9,4 +9,6 @@ Which test cases from the Verification and Validation plan have automated tests 
 
 Other test cases are not automated yet.
 
+Not a V&V test case, but tested: `tests/swift/ApprovalTests.swift` checks the "waiting for approval" flag set by Review & save (stored in details, survives JSON, cleared by an approved save or a delete) and the store's pending count behind the Day plan alert and the Votes badge.
+
 New app tests use Swift Testing, as the V&V plan says; the older `ActivityFlowTests` use XCTest. `swift test` runs both.
