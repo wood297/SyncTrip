@@ -2,7 +2,7 @@
  Trip model
  Trip metadata from GET /api/v1/trips: id, name, destination, start date, and
  status. The backend has no end date, travellers, or forks yet, so the Trips
- page groups trips by status and shows only what is stored.
+ page groups trips by status and start date and shows only what is stored.
  */
 
 import Foundation
@@ -24,12 +24,17 @@ struct Trip: Identifiable, Hashable, Decodable {
 
     var startDate: Date? { Trip.parseDate(startDateText) }
 
-    // active -> Now; completed or cancelled -> Past; planning or anything else -> Upcoming
-    var section: TripSection {
+    // active -> Now; completed or cancelled -> Past. Any other status goes by start
+    // date: starts after today -> Upcoming, already started -> Now. With no readable
+    // date it stays Upcoming. There is no end date yet, so a started trip stays in
+    // Now until its status is set to completed.
+    func section(now: Date = .now) -> TripSection {
         switch status.lowercased() {
-        case "active": .now
-        case "completed", "cancelled": .past
-        default: .upcoming
+        case "active": return .now
+        case "completed", "cancelled": return .past
+        default:
+            guard let startDate else { return .upcoming }
+            return startDate > Calendar.current.startOfDay(for: now) ? .upcoming : .now
         }
     }
 
@@ -85,9 +90,9 @@ struct TripSections {
     let upcoming: [Trip]
     let past: [Trip]
 
-    init(trips: [Trip]) {
+    init(trips: [Trip], now: Date = .now) {
         func ordered(_ section: TripSection, newestFirst: Bool) -> [Trip] {
-            trips.filter { $0.section == section }.sorted { a, b in
+            trips.filter { $0.section(now: now) == section }.sorted { a, b in
                 switch (a.startDate, b.startDate) {
                 case let (x?, y?) where x != y: return newestFirst ? x > y : x < y
                 case (_?, nil): return true

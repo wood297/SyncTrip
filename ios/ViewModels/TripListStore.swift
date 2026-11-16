@@ -36,7 +36,7 @@ final class TripListStore {
         do {
             let list = try await api.listTrips()
             var loaded: [String: [Activity]] = [:]
-            for trip in list where trip.section == .now {
+            for trip in list where trip.section() == .now {
                 // The trip list still shows if one trip's activities fail to load
                 if let response = try? await api.list(tripID: trip.id) {
                     loaded[trip.id] = response.activities

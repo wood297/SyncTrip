@@ -16,16 +16,17 @@ The app opens on Trips. Trips is active in the bottom menu bar.
 
 ## What it shows
 
-Every trip from `GET /api/v1/trips`, grouped by the trip's `status`:
+Every trip from `GET /api/v1/trips`, grouped by the trip's `status` and start date:
 
-| Section | Status | Order |
+| Section | Which trips | Order |
 |---|---|---|
-| Now | `active` | Earliest start first |
-| Upcoming | `planning`, or any status the app doesn't know | Earliest start first |
+| Now | `active`, or any other status whose start date is today or earlier | Earliest start first |
+| Upcoming | `planning` (or a status the app doesn't know) starting after today, or with no readable date | Earliest start first |
 | Past | `completed`, `cancelled` (marked "Cancelled") | Latest start first |
 
-Sections use status, not dates, because trips have no end date yet. Trips whose
-start date can't be read are listed last in their section.
+Trips have no end date yet, so a started trip stays in Now until its status is
+set to `completed`. Trips whose start date can't be read are listed last in their
+section.
 
 - **Now card** (dark green): trip name, start date and destination. It also loads
   that trip's activities to show:
