@@ -61,15 +61,27 @@ verify_api.py --trip-id trip001 is the read-only alternative.
    pages; Map and Settings should do nothing.
 6. On the Day plan, tap +. The full-screen New activity form (Figma 03) opens with
    the next hour as its time. Pick a type tile, enter a Name, optionally Where/Notes,
-   then Review. Review stays on "Saving…" until success, then dismisses and shows
-   the activity. (Review saves directly until the 05 Review & save screen is built.)
+   then Review. Review & save (Figma 05) shows the row as it will look, a "Needs
+   approval" note and the vote rules; Back returns to the form unchanged.
+   - Save and send: the form closes and the Day plan shows the activity as a dashed
+     amber card (Figma 09), a "Waiting for Leaders' approval · View" alert (View
+     opens Votes) and a badge on Votes. GET activities shows `"Approval": "pending"`
+     in its details.
+   - Or tap "On your fork, or as a Leader, this saves right away.": the Day plan
+     outlines it in green with an "Added to Saturday · Synced · Undo" toast
+     (Figma 08). Undo within 6 seconds deletes it.
+   The app has no roles yet, so like the Figma prototype Save and send always takes
+   the Traveller path.
 7. Relaunch the app without restarting the backend. The activity should reload.
    Confirm it also exists through GET activities in /docs.
 8. Open it. Activity details (Figma 06) shows its type, name, time, a map of
    Where (the map needs internet), template fields and notes, with no menu bar;
    Open in Maps opens Apple Maps. Tap Edit activity (Figma 07), change the time,
-   and check the new times show in amber with a "Moved … (was …)" note. Review,
-   relaunch, and confirm the edit. Then ••• → Delete activity → Delete (or Edit →
+   and check the new times show in amber with a "Moved … (was …)" note. Review
+   opens 05 again; saving closes the details and the Day plan shows 08 ("Saved ·
+   Synced", Undo puts back the old version) or 09. A pending activity's details
+   show "Needs approval"; saving it right away clears that. Relaunch and confirm
+   the edit. Then ••• → Delete activity → Delete (or Edit →
    Delete activity); it disappears from the UI and from GET activities, and only
    the selected activity is removed.
 9. Open a draft and stop the server before Review. An error should keep the form

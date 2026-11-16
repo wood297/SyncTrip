@@ -23,6 +23,12 @@ Shared colors, card style, pill buttons, and avatars are in `ios/Views/Theme.swi
 - On today's date a green line marks the current time.
 - "Synced" / "Syncing" / "Not synced" reflects the store's loading and error state.
 - Reordering is done by changing an activity's time; there is no drag and drop.
+- After Review & save (Figma 05) the Day plan jumps to the activity's day and shows
+  either Figma 08 (green outline and an "Added to Saturday · Synced · Undo" toast
+  for 6 seconds; Undo deletes a new activity or restores the edited one) or
+  Figma 09 (a dashed amber card and a "Waiting for Leaders' approval · View" alert
+  that opens Votes). Waiting is stored as `details["Approval"] = "pending"`; the
+  alert and the Votes badge stay while any activity of the trip is waiting.
 
 The title is the selected trip's destination and the subtitle its name (see
 [trips.md](trips.md) for how a trip is selected).
@@ -36,7 +42,8 @@ activity model has no member or fork data yet.
 - Open votes show the proposal, a result bar with a tick at the pass threshold,
   counts, time left, and Yes/No buttons. With no open votes, an empty state is shown.
 - Tapping Yes/No updates the counts on screen only. Nothing is saved or sent to
-  the backend yet.
+  the backend yet, so a pending activity is not approved from here; editing it and
+  choosing "saves right away" on Review & save clears it.
 
 ## Menu bar
 
@@ -51,9 +58,11 @@ the selected page above the bar and opens on Trips.
 - Item order, labels, icons, the starting page, and selection rules are in
   `ios/Models/Page.swift` (no SwiftUI), so `swift test` covers them in
   `tests/swift/MenuBarTests.swift`. The bar's look is checked with its `#Preview`.
-- The bar hides on activity details, as in Figma 06, and comes back on Back.
-  A page opts in with `.hidesMenuBar()` (in `MenuBar.swift`). Full-screen forms
-  such as add/edit cover it.
+- `RootView` attaches the bar to each page's top screen, inside its
+  `NavigationStack`. The page then leaves room for it (the Day plan's toast and
+  approval alert sit above it), and screens opened from the page, such as activity
+  details (Figma 06), cover it. Full-screen forms cover it too.
+- Votes shows a badge with the number of activities waiting for approval.
 - Each page has its own `NavigationStack`, so switching pages returns that page
   to its top screen.
 - `ItineraryView` and `TimeView` are kept in the project but are no longer

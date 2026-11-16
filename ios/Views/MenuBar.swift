@@ -9,11 +9,13 @@ import SwiftUI
 
 struct MenuBar: View {
     @Binding var page: Page
+    var votesBadge = 0   // activities waiting for approval (Figma 09 badge)
 
     var body: some View {
         HStack(spacing: 4) {
             ForEach(Page.allCases, id: \.self) { item in
-                MenuBarItem(page: item, selected: page == item) {
+                MenuBarItem(page: item, selected: page == item,
+                            badge: item == .votes ? votesBadge : 0) {
                     page.select(item)
                 }
                 .disabled(!item.isAvailable)
@@ -32,6 +34,7 @@ struct MenuBar: View {
 private struct MenuBarItem: View {
     let page: Page
     let selected: Bool
+    var badge = 0
     var onTap: () -> Void
 
     var body: some View {
@@ -40,6 +43,16 @@ private struct MenuBarItem: View {
                 Image(systemName: page.icon)
                     .font(.system(size: 18, weight: .regular))
                     .frame(height: 22)
+                    .overlay(alignment: .topTrailing) {
+                        if badge > 0 {
+                            Text("\(badge)")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundStyle(.white)
+                                .frame(minWidth: 18, minHeight: 18)
+                                .background(Theme.amberText, in: Capsule())
+                                .offset(x: 12, y: -8)
+                        }
+                    }
                 Text(page.label)
                     .font(.system(size: 12, weight: selected ? .semibold : .medium))
                     .lineLimit(1)
@@ -51,7 +64,7 @@ private struct MenuBarItem: View {
             .contentShape(Capsule())
         }
         .buttonStyle(MenuBarButtonStyle())
-        .accessibilityLabel(page.label)
+        .accessibilityLabel(badge > 0 ? "\(page.label), \(badge) waiting for approval" : page.label)
         .accessibilityHint(page.isAvailable ? "" : "Coming soon")
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
@@ -62,31 +75,6 @@ private struct MenuBarButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .opacity(configuration.isPressed ? 0.7 : 1)
-    }
-}
-
-// MARK: - Hiding the bar on detail pages
-
-extension EnvironmentValues {
-    // RootView hides the bar while this is true (see hidesMenuBar())
-    @Entry var menuBarHidden: Binding<Bool> = .constant(false)
-}
-
-extension View {
-    // Hides the menu bar while this page is on screen, the way iOS hides
-    // a tab bar on pushed detail pages (Figma 06 has no bar)
-    func hidesMenuBar() -> some View {
-        modifier(HidesMenuBar())
-    }
-}
-
-private struct HidesMenuBar: ViewModifier {
-    @Environment(\.menuBarHidden) private var hidden
-
-    func body(content: Content) -> some View {
-        content
-            .onAppear { hidden.wrappedValue = true }
-            .onDisappear { hidden.wrappedValue = false }
     }
 }
 
