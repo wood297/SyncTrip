@@ -70,6 +70,27 @@ struct Activity: Identifiable, Codable {
         return m == 0 ? "\(h)h" : "\(h)h \(m)m"
     }
 
+    // e.g. "Sat, Jun 13 · 2:00 – 4:00 PM"; a slot over several days shows both dates
+    static func slotText(from start: Date, to end: Date) -> String {
+        guard Calendar.current.isDate(start, inSameDayAs: end) else {
+            return (start..<max(end, start))
+                .formatted(.interval.weekday(.abbreviated).month(.abbreviated).day().hour().minute())
+        }
+        let day = start.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day())
+        return "\(day) · \(compactRange(from: start, to: end))"
+    }
+
+    // e.g. "2:00 – 4:00 PM"; AM/PM is shown once when both times share it
+    static func compactRange(from start: Date, to end: Date) -> String {
+        let calendar = Calendar.current
+        let samePeriod = calendar.isDate(start, inSameDayAs: end)
+            && (calendar.component(.hour, from: start) < 12) == (calendar.component(.hour, from: end) < 12)
+        let startText = samePeriod
+            ? start.formatted(.dateTime.hour(.defaultDigits(amPM: .omitted)).minute())
+            : start.formatted(date: .omitted, time: .shortened)
+        return "\(startText) – \(end.formatted(date: .omitted, time: .shortened))"
+    }
+
     // e.g. "9:00 AM – 10:30 AM"
     var timeRange: String {
         "\(start.formatted(date: .omitted, time: .shortened)) – \(end.formatted(date: .omitted, time: .shortened))"
