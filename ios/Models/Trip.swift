@@ -90,9 +90,9 @@ struct TripSections {
     let upcoming: [Trip]
     let past: [Trip]
 
-    init(trips: [Trip], now: Date = .now) {
+    init(trips: [Trip], now date: Date = .now) {
         func ordered(_ section: TripSection, newestFirst: Bool) -> [Trip] {
-            trips.filter { $0.section(now: now) == section }.sorted { a, b in
+            trips.filter { $0.section(now: date) == section }.sorted { a, b in
                 switch (a.startDate, b.startDate) {
                 case let (x?, y?) where x != y: return newestFirst ? x > y : x < y
                 case (_?, nil): return true
