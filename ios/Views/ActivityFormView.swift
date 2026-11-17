@@ -3,7 +3,7 @@
  Full-screen form. A new activity starts from its time slot and a type
  template; an edit highlights changed times in amber.
  Review is enabled once there is a name and the end is not before the start.
- Until the 05 Review & save screen exists, Review saves directly.
+ It opens 05 Review & save (ReviewSaveView), which saves and closes the form.
  */
 
 import SwiftUI
@@ -16,6 +16,7 @@ struct ActivityFormView: View {
     @State private var failure: Failure?
     @State private var editingTime = false
     @State private var confirmDelete = false
+    @State private var reviewing = false
     private let original: Activity
     let isNew: Bool
     let onSave: (Activity) async throws -> Void
@@ -51,6 +52,12 @@ struct ActivityFormView: View {
             .safeAreaInset(edge: .top, spacing: 0) { header }
             .safeAreaInset(edge: .bottom, spacing: 0) { reviewButton }
             .toolbar(.hidden, for: .navigationBar)
+            .navigationDestination(isPresented: $reviewing) {
+                ReviewSaveView(activity: cleaned, isNew: isNew) { activity in
+                    try await onSave(activity)
+                    dismiss()
+                }
+            }
             .navigationDestination(for: Field.self) { field in
                 switch field {
                 case .location:
@@ -176,7 +183,7 @@ struct ActivityFormView: View {
     }
 
     private var reviewButton: some View {
-        Button(isSaving ? "Saving…" : "Review", action: review)
+        Button("Review") { reviewing = true }
             .buttonStyle(PillButtonStyle(filled: true))
             .disabled(!isValid || isSaving)
             .opacity(isValid && !isSaving ? 1 : 0.4)
@@ -284,19 +291,6 @@ struct ActivityFormView: View {
     }
 
     // MARK: - Actions
-
-    private func review() {
-        isSaving = true
-        Task { @MainActor in
-            defer { isSaving = false }
-            do {
-                try await onSave(cleaned)
-                dismiss()
-            } catch {
-                failure = Failure(title: "Couldn’t save activity", message: error.localizedDescription)
-            }
-        }
-    }
 
     private func delete() {
         guard let onDelete else { return }

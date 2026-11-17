@@ -48,6 +48,11 @@ class TripStore {
         activities.first { $0.id == id }
     }
 
+    // Activities waiting for Leaders' approval (Votes badge, Day plan alert)
+    var pendingCount: Int {
+        activities.filter(\.isPending).count
+    }
+
     // Switch to another trip. Clears the old activities; the Day plan loads the new
     // ones when it appears. Picking the current trip keeps what is loaded.
     func select(_ newTrip: Trip) {

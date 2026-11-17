@@ -2,12 +2,14 @@
  Activity details (Figma: 06 Activity details)
  One activity: type, name and time, its place on a map with Open in Maps,
  template fields and notes. Edit activity opens the edit form (Figma 07)
- full screen; ••• has Delete. The map finds the typed place with MapKit
- search; until it does, or if nothing matches, a plain tinted panel shows.
- The bottom menu bar is hidden here, as in Figma.
+ full screen; after Review & save (05) this page closes and the Day plan
+ shows the result (08 or 09). ••• has Delete. The map finds the typed place
+ with MapKit search; until it does, or if nothing matches, a plain tinted
+ panel shows. This page covers the bottom menu bar, as in Figma.
 
  Static for the prototype, like the Day plan:
- - the "Main plan" chip (every activity is on the main plan until forks exist)
+ - the "Main plan" chip, or "Needs approval" while waiting (every activity is
+   on the main plan until forks exist)
  - "Skip it · start a fork" is shown but disabled (forks are a later feature)
  - the "N going" chip and Who's going card are not shown,
    because the model has no member data yet
@@ -21,21 +23,16 @@ struct ActivityDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     let activityID: UUID
+    // Called after an edit is saved, with the new and the previous version
+    var onSaved: (Activity, Activity) -> Void = { _, _ in }
 
     @State private var showEdit = false
+    @State private var finishedEdit: (saved: Activity, previous: Activity)?
     @State private var confirmDelete = false
     @State private var isDeleting = false
     @State private var deleteError: String?
 
     var body: some View {
-        Group {
-            page
-        }
-        .hidesMenuBar()
-    }
-
-    @ViewBuilder
-    private var page: some View {
         // Look up by id so edits show here right away
         if let activity = store.activity(id: activityID) {
             ScrollView {
@@ -59,9 +56,10 @@ struct ActivityDetailView: View {
             .toolbar(.hidden, for: .navigationBar)
             .navigationTitle(activity.title)
             .safeAreaInset(edge: .bottom, spacing: 0) { actions }
-            .fullScreenCover(isPresented: $showEdit) {
-                ActivityFormView(activity: activity, isNew: false) {
-                    try await store.save($0, isNew: false)
+            .fullScreenCover(isPresented: $showEdit, onDismiss: returnToDayPlan) {
+                ActivityFormView(activity: activity, isNew: false) { saved in
+                    try await store.save(saved, isNew: false)
+                    finishedEdit = (saved, activity)
                 } onDelete: {
                     try await store.delete(id: activityID)
                 }
@@ -130,13 +128,21 @@ struct ActivityDetailView: View {
                 .font(.bodyRegular)
                 .foregroundStyle(Theme.muted)
 
-            Text("Main plan")
+            Text(activity.isPending ? "Needs approval" : "Main plan")
                 .font(.meta)
-                .foregroundStyle(Theme.forest)
+                .foregroundStyle(activity.isPending ? Theme.amberText : Theme.forest)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 5)
-                .background(Theme.tint, in: Capsule())
+                .background(activity.isPending ? Theme.amberTint : Theme.tint, in: Capsule())
         }
+    }
+
+    // After a saved edit, go back so the Day plan can show it (Figma 08 / 09)
+    private func returnToDayPlan() {
+        guard let finishedEdit else { return }
+        self.finishedEdit = nil
+        onSaved(finishedEdit.saved, finishedEdit.previous)
+        dismiss()
     }
 
     // MARK: - Cards
