@@ -60,7 +60,11 @@ verify_api.py --trip-id trip001 is the read-only alternative.
    activities. In the bottom menu bar, Trips, Plan, and Votes should switch
    pages; Map and Settings should do nothing.
 6. On the Day plan, tap +. The full-screen New activity form (Figma 03) opens with
-   the next hour as its time. Pick a type tile, enter a Name, optionally Where/Notes,
+   the next hour as its time. Tap Get suggestions (Figma 04): a sheet titled "Ideas
+   for" the form's time slot shows three ideas; Show different ideas shows the next
+   three and wraps around; Use fills the type, Name and (if empty) Notes and closes
+   the sheet, keeping the time and Where. Nothing is saved until Review (details in
+   suggestions.md). Pick or adjust a type tile, enter a Name, optionally Where/Notes,
    then Review. Review & save (Figma 05) shows the row as it will look, a "Needs
    approval" note and the vote rules; Back returns to the form unchanged.
    - Save and send: the form closes and the Day plan shows the activity as a dashed
