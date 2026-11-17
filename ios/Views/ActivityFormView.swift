@@ -11,6 +11,7 @@ import SwiftUI
 struct ActivityFormView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var draft: Activity
+    @State private var showingSuggestions = false
     @State private var isSaving = false
     @State private var failure: Failure?
     @State private var editingTime = false
@@ -71,6 +72,14 @@ struct ActivityFormView: View {
         .interactiveDismissDisabled(isSaving)
         .sheet(isPresented: $editingTime) {
             TimeSheet(start: $draft.start, end: $draft.end)
+        }
+        // 04 Suggestions: Use fills the type, name and (if empty) notes
+        .sheet(isPresented: $showingSuggestions) {
+            SuggestionsView(start: draft.start, end: draft.end) { idea in
+                var updated = draft
+                idea.apply(to: &updated)
+                draft = updated
+            }
         }
         .confirmationDialog("Delete this activity?", isPresented: $confirmDelete,
                             titleVisibility: .visible) {
@@ -201,7 +210,7 @@ struct ActivityFormView: View {
 
     private var suggestionsRow: some View {
         Button {
-            // Opens 04 Suggestions once that screen is built
+            showingSuggestions = true
         } label: {
             HStack(spacing: 12) {
                 Image(systemName: "sparkles")
