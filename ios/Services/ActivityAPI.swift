@@ -16,6 +16,8 @@ struct TripListResponse: Decodable {
 
 struct ActivityAPIError: LocalizedError {
     let message: String
+    // HTTP status when the server answered with an error
+    var status: Int? = nil
     var errorDescription: String? { message }
 }
 
@@ -38,6 +40,22 @@ final class ActivityAPI {
     func listTrips() async throws -> [Trip] {
         let data = try await request(path: [], method: "GET", expected: 200)
         return try decoder().decode(TripListResponse.self, from: data).trips
+    }
+
+    // Creates a trip (Figma 11). The response also has an activities map, which is ignored.
+    func createTrip(_ trip: NewTrip) async throws -> Trip {
+        do {
+            let data = try await request(path: [], method: "POST",
+                                         body: try JSONEncoder().encode(trip), expected: 201)
+            return try decoder().decode(Trip.self, from: data)
+        } catch let error as ActivityAPIError where error.status == 422 || error.status == 409 {
+            // The shared messages talk about activities; say what applies to a trip
+            throw ActivityAPIError(
+                message: error.status == 422
+                    ? "Check the trip name and destination (1–200 characters each) and the start date."
+                    : "A different trip already uses this ID. Close the form and try again.",
+                status: error.status)
+        }
     }
 
     func list(tripID: String) async throws -> ActivityListResponse {
@@ -96,7 +114,7 @@ final class ActivityAPI {
             case 503: message = "The database is unavailable. Your activity has not been confirmed saved. Try again."
             default: message = "The request failed (HTTP \(http.statusCode)). Try again."
             }
-            throw ActivityAPIError(message: message)
+            throw ActivityAPIError(message: message, status: http.statusCode)
         }
         return data
     }

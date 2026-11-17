@@ -56,6 +56,26 @@ At launch the selected trip is still `SYNCTRIP_TRIP_ID`. Its name and destinatio
 are filled in once the trip list loads. Until then the Day plan shows "Day plan"
 and the trip ID.
 
+## Creating a trip (Figma 11 and 12, extra)
+
+Not part of the prototype's user flow; added so the **+** button works.
+`ios/Views/CreateTripView.swift`, with the request body in `ios/Models/NewTrip.swift`.
+
+- **+** opens **New trip** (Figma 11) full screen: Trip name, Destination, and
+  Starts. Create trip is enabled once name and destination are filled in
+  (1–200 characters each, as the backend requires).
+- Create trip sends `POST /api/v1/trips` with status `planning`. The app makes
+  the trip ID and keeps it, so retrying after a lost response doesn't create a
+  second trip. Errors show an alert and keep the form.
+- **Your trip is ready** (Figma 12) shows the new trip. **Open day plan** selects
+  it and opens its (empty) Day plan; **Back to trips** closes, and the trip is
+  listed under Upcoming, or Now if it starts today.
+
+Differences from Figma: there is no Ends row (trips have no end date yet),
+Destination is required because the backend needs it, and 12's **Set member
+roles** button is replaced by **Open day plan** because member roles (Figma 13–14)
+are not built.
+
 ## Not shown yet
 
 The backend has no data for these, so they are left out rather than faked:
@@ -64,8 +84,7 @@ The backend has no data for these, so they are left out rather than faked:
 - Member avatars on the Now card
 - The fork line ("Ana & Leo on a fork until 3:00 PM")
 
-The **+** button (new trip) is shown to match Figma but does nothing yet. Votes
-still uses sample data and the "Iceland Ring Road" name.
+Votes still uses sample data and the "Iceland Ring Road" name.
 
 ## Differences from Figma
 
