@@ -51,15 +51,23 @@ struct Activity: Identifiable, Codable {
     var title: String
     var start: Date
     var end: Date
-    var details: [String: String] = [:]   // keyed by type.fields and locationKey
+    var details: [String: String] = [:]   // keyed by type.fields, locationKey and approvalKey
     var notes: String = ""
 
     static let locationKey = "Location"
+    static let approvalKey = "Approval"
 
     // Where the activity happens. Stored in details so the API stays the same.
     var location: String {
         get { details[Self.locationKey, default: ""] }
         set { details[Self.locationKey] = newValue }
+    }
+
+    // Sent for approval and waiting for Leaders (Figma 09). Stored in details as
+    // "Approval": "pending" so the API stays the same; absent means approved.
+    var isPending: Bool {
+        get { details[Self.approvalKey] == "pending" }
+        set { details[Self.approvalKey] = newValue ? "pending" : nil }
     }
 
     // e.g. "1h 30m"

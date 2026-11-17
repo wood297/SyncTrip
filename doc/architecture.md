@@ -23,7 +23,9 @@ The form waits for confirmed persistence before dismissing. Failed saves preserv
 the draft; deletes change the visible list only after success. The app opens on
 Trips; a bottom menu bar (RootView + MenuBar, rules in Models/Page.swift)
 switches between Trips, Plan, and Votes, with Map/Settings inactive; activity
-details hides it, and finds its map with MapKit local search (no key). Trips reads
+details covers it, and finds its map with MapKit local search (no key). Review &
+save marks a Traveller's change as waiting for approval in details["Approval"]
+(like "Where" in details["Location"]), so the API is unchanged. Trips reads
 GET /api/v1/trips through TripListStore; tapping a trip calls TripStore.select,
 which switches the Day plan to that trip and ignores late results for the old
 one. SYNCTRIP_TRIP_ID is only the trip selected at launch. Day plan refresh

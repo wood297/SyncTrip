@@ -1,6 +1,6 @@
 /*
  Shared rows, text buttons and text styles for form-style screens
- (Figma 03 Add activity, 06 Activity details, 07 Edit activity, 05 Review & save).
+ (Figma 03 Add activity, 05 Review & save, 06 Activity details, 07 Edit activity).
  Colours, cards, pill buttons and caps labels are in Theme.swift.
  */
 
@@ -9,6 +9,7 @@ import SwiftUI
 extension Theme {
     static let danger = Color(hex: 0xB3261E)     // --st-status-danger
     static let onAccent = Color(hex: 0xFFFFFF)   // --st-text-on-accent
+    static let amberLine = Color(hex: 0xD49A3A)  // --st-alert-amber-line (pending borders)
 }
 
 // Text styles from the Figma file, set in the system font
@@ -19,6 +20,7 @@ extension Font {
     static let bodyEmphasis = Font.system(size: 16, weight: .semibold)
     static let bodyRegular = Font.system(size: 16)
     static let bodyMedium = Font.system(size: 16, weight: .medium)
+    static let bodySmall = Font.system(size: 14)
     static let callout15 = Font.system(size: 15, weight: .semibold)
     static let meta = Font.system(size: 13)
     static let metaMedium = Font.system(size: 13, weight: .medium)

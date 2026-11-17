@@ -5,6 +5,13 @@
  that opens the add form at that time. On today's date a line marks the
  current time. Tapping an activity opens its detail page; + adds one.
 
+ After Review & save (05) the Day plan shows the activity's day and either
+ - Figma 08 Saved: the activity outlined in green and an "Added to Saturday ·
+   Synced · Undo" toast for a few seconds, or
+ - Figma 09 Pending approval: the activity as a dashed amber card and a
+   "Waiting for Leaders' approval · View" alert that opens Votes. The alert
+   stays while any activity of the trip is waiting.
+
  Uses the selected trip from TripStore: its destination as the title, its
  name in the subtitle, and its real activities. Static for the prototype:
  - member avatars / chat button in the top-left pill
@@ -17,6 +24,7 @@ import SwiftUI
 
 struct DayPlanView: View {
     @Environment(TripStore.self) private var store
+    var openVotes: () -> Void = {}   // the approval alert's View (set by RootView)
 
     // Selected trip's destination and name; the trip ID until the trip list loads
     private var place: String { store.trip?.destination ?? "Day plan" }
@@ -25,6 +33,8 @@ struct DayPlanView: View {
     @State private var selectedDay: Date?
     @State private var plan: PlanTab = .main
     @State private var draft: Activity?
+    @State private var notice: SavedNotice?
+    @State private var undoError: String?
 
     enum PlanTab { case main, forks }
 
@@ -51,13 +61,36 @@ struct DayPlanView: View {
         .background(Theme.ground.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .safeAreaInset(edge: .bottom) {
-            if store.legacyActivityCount > 0 {
-                Text("\(store.legacyActivityCount) older activities need conversion before they can appear here.")
-                    .font(.footnote)
-                    .padding()
-                    .background(.regularMaterial)
+            VStack(spacing: 8) {
+                if let notice {
+                    SavedToast(message: notice.message) { undo(notice) }
+                        .padding(.horizontal, 20)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                } else if store.pendingCount > 0 {
+                    ApprovalAlert(action: openVotes)
+                        .padding(.horizontal, 20)
+                }
+                if store.legacyActivityCount > 0 {
+                    Text("\(store.legacyActivityCount) older activities need conversion before they can appear here.")
+                        .font(.footnote)
+                        .padding()
+                        .background(.regularMaterial)
+                }
             }
+            .padding(.bottom, 8)
+            .animation(.easeOut(duration: 0.25), value: notice?.id)
         }
+        // The 08 toast and outline go away after a few seconds
+        .task(id: notice?.id) {
+            guard notice != nil else { return }
+            try? await Task.sleep(for: .seconds(6))
+            if !Task.isCancelled { notice = nil }
+        }
+        .alert("Couldn’t undo", isPresented: Binding(
+            get: { undoError != nil }, set: { if !$0 { undoError = nil } }
+        )) {
+            Button("OK", role: .cancel) { undoError = nil }
+        } message: { Text(undoError ?? "") }
         .task { if !store.hasLoaded { await store.refresh() } }
         .refreshable { await store.refresh() }
         .alert("Couldn’t refresh itinerary", isPresented: Binding(
@@ -67,11 +100,47 @@ struct DayPlanView: View {
             Button("OK", role: .cancel) { store.loadError = nil }
         } message: { Text(store.loadError ?? "") }
         .navigationDestination(for: UUID.self) { id in
-            ActivityDetailView(activityID: id)
+            ActivityDetailView(activityID: id) { saved, previous in
+                didSave(saved, previous: previous)
+            }
         }
         .fullScreenCover(item: $draft) { activity in
-            ActivityFormView(activity: activity, isNew: true) {
-                try await store.save($0, isNew: true)
+            ActivityFormView(activity: activity, isNew: true) { saved in
+                try await store.save(saved, isNew: true)
+                didSave(saved, previous: nil)
+            }
+        }
+    }
+
+    // MARK: - After Review & save
+
+    // Show the activity's day, then the 08 toast, or for a pending one the 09 alert
+    private func didSave(_ activity: Activity, previous: Activity?) {
+        selectedDay = Calendar.current.startOfDay(for: activity.start)
+        plan = .main
+        guard !activity.isPending else {
+            notice = nil
+            return
+        }
+        let day = activity.start.formatted(.dateTime.weekday(.wide))
+        notice = SavedNotice(activityID: activity.id,
+                             message: previous == nil ? "Added to \(day) · Synced" : "Saved · Synced",
+                             previous: previous)
+    }
+
+    // Undo removes a new activity, or puts back the version before an edit
+    private func undo(_ saved: SavedNotice) {
+        notice = nil
+        Task { @MainActor in
+            do {
+                if var previous = saved.previous {
+                    previous.version = store.activity(id: saved.activityID)?.version
+                    try await store.save(previous, isNew: false)
+                } else {
+                    try await store.delete(id: saved.activityID)
+                }
+            } catch {
+                undoError = error.localizedDescription
             }
         }
     }
@@ -272,9 +341,11 @@ struct DayPlanView: View {
                 switch item {
                 case .activity(let activity):
                     NavigationLink(value: activity.id) {
-                        TimelineActivityRow(activity: activity)
+                        TimelineActivityRow(activity: activity,
+                                            highlighted: activity.id == notice?.activityID)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityHint("Opens activity details")
                 case .free(let start, let end):
                     Button {
                         draft = newActivity(start: start, end: min(start.addingTimeInterval(3600), end))
@@ -402,8 +473,11 @@ private struct TimeLabel: View {
     }
 }
 
-private struct TimelineActivityRow: View {
+// One activity in the timeline (also the preview on 05 Review & save).
+// Waiting for approval: dashed amber card (Figma 09). Just saved: green outline (Figma 08).
+struct TimelineActivityRow: View {
     let activity: Activity
+    var highlighted = false
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
@@ -419,22 +493,119 @@ private struct TimelineActivityRow: View {
                     Image(systemName: activity.type.icon)
                         .font(.system(size: 11))
                         .frame(width: 14, height: 14)
-                    Text("Until \(activity.end.formatted(date: .omitted, time: .shortened))")
+                        .foregroundStyle(Theme.muted)
+                    Text(meta)
                         .font(.system(size: 13))
+                        .foregroundStyle(activity.isPending ? Theme.amberText : Theme.muted)
                         .lineLimit(1)
                 }
-                .foregroundStyle(Theme.muted)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 14)
             .padding(.top, 11)
             .padding(.bottom, 12)
-            .stCard(radius: 14)
+            .modifier(RowCard(pending: activity.isPending, highlighted: highlighted))
         }
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
-        .accessibilityHint("Opens activity details")
     }
+
+    private var meta: String {
+        let until = "Until \(activity.end.formatted(date: .omitted, time: .shortened))"
+        return activity.isPending ? "Needs approval · \(until)" : until
+    }
+}
+
+private struct RowCard: ViewModifier {
+    let pending: Bool
+    let highlighted: Bool
+
+    func body(content: Content) -> some View {
+        let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
+        if pending {
+            content
+                .background(Theme.amberTint, in: shape)
+                .overlay(shape.strokeBorder(Theme.amberLine,
+                                            style: StrokeStyle(lineWidth: 1.5, dash: [5, 4])))
+        } else {
+            content
+                .stCard(radius: 14)
+                .overlay(shape.strokeBorder(Theme.forest, lineWidth: 1.5).opacity(highlighted ? 1 : 0))
+                .animation(.easeOut(duration: 0.25), value: highlighted)
+        }
+    }
+}
+
+// Dark "✓ Added to Saturday · Synced    Undo" toast (Figma 08)
+private struct SavedToast: View {
+    let message: String
+    let undo: () -> Void
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "checkmark")
+                .font(.system(size: 14, weight: .bold))
+                .frame(width: 18, height: 18)
+                .accessibilityHidden(true)
+            Text(message)
+                .font(.callout15)
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Button("Undo", action: undo)
+                .font(.callout15)
+                .foregroundStyle(Theme.sage)
+                .frame(minHeight: 44)
+        }
+        .foregroundStyle(.white)
+        .padding(.leading, 16)
+        .padding(.trailing, 18)
+        .frame(height: 48)
+        .background(Theme.ink, in: Capsule())
+        .shadow(color: .black.opacity(0.18), radius: 10, x: 0, y: 8)
+    }
+}
+
+// Amber "Waiting for Leaders' approval    View" bar (Figma 09); View opens Votes
+private struct ApprovalAlert: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Image(systemName: "clock")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(Theme.amberText)
+                    .frame(width: 18, height: 18)
+                Text("Waiting for Leaders’ approval")
+                    .font(.callout15)
+                    .foregroundStyle(Theme.ink)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text("View")
+                    .font(.callout15)
+                    .foregroundStyle(Theme.amberText)
+            }
+            .padding(.leading, 16)
+            .padding(.trailing, 18)
+            .frame(height: 48)
+            .background(Theme.amberTint, in: Capsule())
+            .overlay(Capsule().strokeBorder(Theme.amberLine, lineWidth: 1))
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Waiting for Leaders’ approval")
+        .accessibilityHint("Opens Votes")
+        .accessibilityAddTraits(.isButton)
+    }
+}
+
+// Shown after Review & save; Undo deletes a new activity or restores `previous`
+private struct SavedNotice: Identifiable {
+    let id = UUID()
+    let activityID: UUID
+    let message: String
+    let previous: Activity?
 }
 
 // Dashed "Free until 5:00 PM · Tap to add" slot
