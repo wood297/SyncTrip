@@ -28,6 +28,15 @@ final class TripListStore {
 
     var sections: TripSections { TripSections(trips: trips) }
 
+    // Creates the trip on the backend (Figma 11) and adds it to the list.
+    // Previews have no API, so there the trip is only added locally.
+    func create(_ newTrip: NewTrip) async throws -> Trip {
+        let created = try await api?.createTrip(newTrip) ?? newTrip.asTrip
+        trips.removeAll { $0.id == created.id }
+        trips.append(created)
+        return created
+    }
+
     func refresh() async {
         guard let api, !isLoading else { return }
         isLoading = true

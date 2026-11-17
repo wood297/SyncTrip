@@ -7,8 +7,8 @@
  (active / planning / completed or cancelled), because trips have no end date
  yet. The Now card shows today's next activity from that trip's activities.
  Not shown, because the backend has no data for them yet: end dates,
- traveller counts and avatars, and the fork line. The + button (new trip) is
- a later feature and is inactive.
+ traveller counts and avatars, and the fork line. The + button opens
+ Create trip (Figma 11-12, CreateTripView).
  */
 
 import SwiftUI
@@ -17,6 +17,8 @@ struct TripsView: View {
     @Environment(TripListStore.self) private var list
     // Called with the trip the user tapped
     var onOpen: (Trip) -> Void = { _ in }
+
+    @State private var creatingTrip = false
 
     var body: some View {
         ScrollView {
@@ -50,14 +52,19 @@ struct TripsView: View {
                 .foregroundStyle(Theme.ink)
                 .accessibilityAddTraits(.isHeader)
             Spacer()
-            // New trip is a later feature
-            Image(systemName: "plus")
-                .font(.system(size: 20, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 48, height: 48)
-                .background(Theme.forest, in: Circle())
-                .accessibilityLabel("New trip")
-                .accessibilityHint("Coming soon")
+            // Opens 11 Create trip
+            Button { creatingTrip = true } label: {
+                Image(systemName: "plus")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 48, height: 48)
+                    .background(Theme.forest, in: Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("New trip")
+        }
+        .fullScreenCover(isPresented: $creatingTrip) {
+            CreateTripView(onOpen: onOpen)
         }
     }
 
