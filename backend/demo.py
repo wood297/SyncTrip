@@ -68,6 +68,10 @@ def main():
              "2026-11-15T00:00:00Z", "2026-11-15T01:30:00Z", "River North"),
             ("e02b5708-76ba-4704-9952-ce22caacee5e", "custom", "Architecture boat tour",  # Nov 15, 11:00-12:30
              "2026-11-15T17:00:00Z", "2026-11-15T18:30:00Z", "Chicago River"),
+            ("a160f9bb-3343-48d7-bf15-9f3b85855ee6", "custom", "Millennium Park",  # Nov 16, 10:00-12:00
+             "2026-11-16T16:00:00Z", "2026-11-16T18:00:00Z", "The Bean"),
+            ("c88d2ecc-81a5-4a5c-a1dc-3e5a61133a31", "custom", "Willis Tower Skydeck",  # Nov 17, 13:00-14:30
+             "2026-11-17T19:00:00Z", "2026-11-17T20:30:00Z", "Willis Tower"),
             ("0fbbd0bc-9e2f-4473-8be7-312741385590", "transport", "Train home",  # Nov 18, 16:00-17:30
              "2026-11-18T22:00:00Z", "2026-11-18T23:30:00Z", "Union Station"),
         ]:

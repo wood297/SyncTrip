@@ -65,8 +65,8 @@ Stop the live server first if using the same port. Then run:
 ```
 
 This uses two emulated DynamoDB tables, seeds three trips (Past: scotland-trip, Now:
-demo-trip in Chicago, Upcoming: miami-beach) plus four Chicago activities on Nov 14,
-15, and 18, and never contacts live AWS. Known gaps: trips have no end date yet, so
+demo-trip in Chicago, Upcoming: miami-beach) plus six Chicago activities, at least one
+on each day from Nov 14 to 18, and never contacts live AWS. Known gaps: trips have no end date yet, so
 the Chicago trip's Nov 14–18 span shows only through its activities; and time zones
 are not handled correctly yet (activity times are stored in UTC and shown in the
 device's time zone, not the trip's). Open /docs or run the full verifier in the other terminal.
