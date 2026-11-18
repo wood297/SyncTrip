@@ -17,8 +17,11 @@ python -m uvicorn backend.main:app --reload
 ```
 
 Or run `python -m backend.demo` for disposable data without AWS. Do not run both on
-the same port. The demo creates both emulated tables and seeds demo-trip plus one
-activity. Keep the backend terminal running while testing the app.
+the same port. The demo creates both emulated tables and seeds three trips
+(scotland-trip, demo-trip, miami-beach) plus six demo-trip activities. Trips have no
+end_date yet, so demo-trip's Nov 14–18 span shows only through its activities, and
+time zones are not handled correctly yet (times are stored in UTC and shown in the
+device's time zone). Keep the backend terminal running while testing the app.
 
 ## Repeatable HTTP verification
 

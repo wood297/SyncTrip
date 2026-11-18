@@ -64,8 +64,12 @@ Stop the live server first if using the same port. Then run:
 .\.venv\Scripts\python.exe -m backend.demo
 ```
 
-This uses two emulated DynamoDB tables, seeds demo-trip and one activity, and never
-contacts live AWS. Open /docs or run the full verifier in the other terminal.
+This uses two emulated DynamoDB tables, seeds three trips (Past: scotland-trip, Now:
+demo-trip in Chicago, Upcoming: miami-beach) plus six Chicago activities, at least one
+on each day from Nov 14 to 18, and never contacts live AWS. Known gaps: trips have no end date yet, so
+the Chicago trip's Nov 14–18 span shows only through its activities; and time zones
+are not handled correctly yet (activity times are stored in UTC and shown in the
+device's time zone, not the trip's). Open /docs or run the full verifier in the other terminal.
 Stopping the demo erases its data; restarting just the app does not. For the older
 activity-only checker: `python scripts/verify_activity_flow.py --trip-id demo-trip --allow-writes`.
 
